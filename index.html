@@ -107,7 +107,7 @@
       </div>
 
       <!-- Simplified Date Card (Gambar 3: Cukup Tanggal Warta Jemaat, misal November 2026) -->
-      <div class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo p-4 relative overflow-hidden">
+      <div id="wartaDateCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo p-4 relative overflow-hidden">
         <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-sky-soft/40 blur-xl pointer-events-none"></div>
         <div class="flex flex-col items-center text-center">
           <span class="font-serif text-[11px] font-bold tracking-[0.25em] text-antique-gold uppercase">Warta Jemaat</span>
@@ -173,7 +173,7 @@
       </section>
 
       <!-- Gambar 2: JADWAL IBADAH (Tabel Urut Dari Hari Minggu, Lalu Jam) -->
-      <section class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
+      <section id="jadwalIbadahSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
         <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press border-b border-sky-soft/60" onclick="toggleAccordion('jadwalIbadahAccordion')">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
@@ -221,7 +221,7 @@
       </a>
 
       <!-- Kartu Jadwal Persekutuan Pekanan -->
-      <section class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo p-4 flex flex-col gap-3">
+      <section id="persekutuanSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo p-4 flex flex-col gap-3">
         <div class="flex items-center justify-between border-b border-sky-mid/30 pb-2.5">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-antique-gold text-[19px]">event_note</span>
@@ -235,7 +235,7 @@
       </section>
 
       <!-- MENU DOKUMENTASI KEGIATAN -->
-      <section class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
+      <section id="dokumentasiSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
         <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press border-b border-sky-soft/60" onclick="toggleAccordion('dokumentasiSection')">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
@@ -262,7 +262,7 @@
       </section>
 
       <!-- MENU RENUNGAN HARIAN (Hierarchical Folder System: Folder Dalam Folder) -->
-      <section class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
+      <section id="renunganSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
         <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press border-b border-sky-soft/60" onclick="toggleAccordion('renunganSection')">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
@@ -393,15 +393,15 @@
         </button>
       </div>
 
-      <!-- PIN Step -->
+      <!-- PIN / Password Step -->
       <div class="flex flex-col gap-3 py-4" id="pinStep">
         <p class="text-xs text-royal-navy/70 leading-relaxed font-sans text-center">
-          Masukkan PIN Keamanan Pengelola untuk mengakses panel pengaturan:
+          Masukkan Kata Sandi Pengelola untuk mengakses panel pengaturan:
         </p>
         <div class="max-w-xs mx-auto w-full">
-          <input type="password" id="adminPinInput" maxlength="8" placeholder="••••" class="w-full rounded-xl bg-sky-cloud/50 border border-sky-mid/50 text-center font-mono tracking-widest text-lg py-2.5 text-royal-navy focus:outline-none focus:border-vintage-gold focus:ring-1 focus:ring-vintage-gold" onkeydown="if(event.key==='Enter') verifyAdminPin();">
-          <p class="text-[11px] text-red-500 mt-1.5 hidden text-center" id="pinErrorMessage">PIN salah! Gunakan PIN demo: 1234</p>
-          <p class="text-[10px] text-royal-navy/40 mt-1 text-center font-sans">Petunjuk: Gunakan PIN default <strong>1234</strong></p>
+          <input type="password" id="adminPinInput" maxlength="32" placeholder="Masukkan kata sandi..." class="w-full rounded-xl bg-sky-cloud/50 border border-sky-mid/50 text-center font-mono tracking-wider text-base py-2.5 text-royal-navy focus:outline-none focus:border-vintage-gold focus:ring-1 focus:ring-vintage-gold" onkeydown="if(event.key==='Enter') verifyAdminPin();">
+          <p class="text-[11px] text-red-500 mt-1.5 hidden text-center" id="pinErrorMessage">Kata sandi salah! Gunakan: gosyen123</p>
+          <p class="text-[10px] text-royal-navy/40 mt-1 text-center font-sans">Petunjuk: Kata sandi pengelola adalah <strong>gosyen123</strong></p>
         </div>
         <div class="max-w-xs mx-auto w-full">
           <button type="button" class="w-full py-2.5 rounded-xl bg-royal-navy text-white font-serif font-bold text-xs tracking-wider shadow-md hover:bg-deep-blue btn-press transition" onclick="verifyAdminPin()">
@@ -419,6 +419,7 @@
           <button type="button" id="tabBtn_persekutuan" class="admin-tab-btn" onclick="switchAdminTab('persekutuan')">Persekutuan</button>
           <button type="button" id="tabBtn_dokumentasi" class="admin-tab-btn" onclick="switchAdminTab('dokumentasi')">Dokumentasi</button>
           <button type="button" id="tabBtn_renungan" class="admin-tab-btn" onclick="switchAdminTab('renungan')">Renungan</button>
+          <button type="button" id="tabBtn_visibilitas" class="admin-tab-btn" onclick="switchAdminTab('visibilitas')">Status Tampilan</button>
           <button type="button" id="tabBtn_cloud" class="admin-tab-btn" onclick="switchAdminTab('cloud')">Database Cloud</button>
         </div>
 
@@ -650,7 +651,25 @@
           </div>
         </div>
 
-        <!-- Tab 6: Database Cloud Settings -->
+        <!-- Tab 6: Status Tampilan & Visibilitas (Aktifkan / Nonaktifkan Bagian) -->
+        <div id="tabContent_visibilitas" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2.5">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-antique-gold text-[20px]">toggle_on</span>
+              <div>
+                <h4 class="font-serif text-xs font-bold text-royal-navy">Pengaturan Visibilitas Menu & Fitur</h4>
+                <p class="text-[10px] text-royal-navy/60 font-sans">Aktifkan atau nonaktifkan bagian agar tidak tertampil di layar jemaat</p>
+              </div>
+            </div>
+
+            <!-- List of Sections Toggle -->
+            <div id="adminVisibilityList" class="flex flex-col gap-2 pt-1 font-sans">
+              <!-- Diisi dinamis oleh javascript -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 7: Database Cloud Settings -->
         <div id="tabContent_cloud" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2.5">
             <div class="flex items-center gap-2">

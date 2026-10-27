@@ -13,7 +13,15 @@ let APP_DB = {
     headerTop: "GPdI Gosyen Kaloran",
     headerBottom: "Warta Jemaat",
     mapsUrl: "https://maps.app.goo.gl/CNYqT17tYnc58aD1A",
-    pin: "1234"
+    pin: "gosyen123"
+  },
+  visibility: {
+    warta: true,
+    jadwalIbadah: true,
+    jadwalPersekutuan: true,
+    dokumentasi: true,
+    renungan: true,
+    maps: true
   },
   warta: {
     editionDate: "November 2026",
@@ -217,13 +225,58 @@ function saveToLocalMirror() {
 
 // Render All Components
 function renderAll() {
+  const vis = APP_DB.visibility || {
+    warta: true,
+    jadwalIbadah: true,
+    jadwalPersekutuan: true,
+    dokumentasi: true,
+    renungan: true,
+    maps: true
+  };
+
   renderHeaderAndHero();
-  renderDateCard();
-  renderWartaImage();
-  renderJadwalIbadah();
-  renderJadwalPersekutuan();
-  renderDokumentasi();
-  renderRenungan();
+
+  // 1. Warta Jemaat (Date Card & Sheet)
+  const wartaDateCard = document.getElementById("wartaDateCard");
+  const wartaSec = document.getElementById("wartaSection");
+  if (wartaDateCard) wartaDateCard.style.display = vis.warta !== false ? "" : "none";
+  if (wartaSec) wartaSec.style.display = vis.warta !== false ? "" : "none";
+  if (vis.warta !== false) {
+    renderDateCard();
+    renderWartaImage();
+  }
+
+  // 2. Jadwal Ibadah
+  const jadwalSec = document.getElementById("jadwalIbadahSectionCard");
+  if (jadwalSec) jadwalSec.style.display = vis.jadwalIbadah !== false ? "" : "none";
+  if (vis.jadwalIbadah !== false) {
+    renderJadwalIbadah();
+  }
+
+  // 3. Petunjuk Arah Google Maps
+  const mapsBtn = document.getElementById("btnGoogleMaps");
+  if (mapsBtn) mapsBtn.style.display = vis.maps !== false ? "" : "none";
+
+  // 4. Jadwal Persekutuan Pekanan
+  const persekutuanSec = document.getElementById("persekutuanSectionCard");
+  if (persekutuanSec) persekutuanSec.style.display = vis.jadwalPersekutuan !== false ? "" : "none";
+  if (vis.jadwalPersekutuan !== false) {
+    renderJadwalPersekutuan();
+  }
+
+  // 5. Dokumentasi Kegiatan
+  const docSec = document.getElementById("dokumentasiSectionCard");
+  if (docSec) docSec.style.display = vis.dokumentasi !== false ? "" : "none";
+  if (vis.dokumentasi !== false) {
+    renderDokumentasi();
+  }
+
+  // 6. Renungan Harian
+  const renunganSec = document.getElementById("renunganSectionCard");
+  if (renunganSec) renunganSec.style.display = vis.renungan !== false ? "" : "none";
+  if (vis.renungan !== false) {
+    renderRenungan();
+  }
 }
 
 function renderHeaderAndHero() {
@@ -283,18 +336,23 @@ function renderWartaImage() {
   if (timestamp) timestamp.textContent = `Edisi: ${APP_DB.warta.editionDate || 'November 2026'}`;
 }
 
-// Render Jadwal Ibadah Table (Sorted: Sunday first, then by time)
+// Render Jadwal Ibadah Table (Sorted: Sunday first, then by time; Filtered by active)
 function renderJadwalIbadah() {
   const container = document.getElementById("jadwalIbadahTableBody");
   if (!container) return;
 
-  const list = [...APP_DB.jadwalIbadah];
+  const list = [...APP_DB.jadwalIbadah].filter(i => i.active !== false);
   list.sort((a, b) => {
     const dayA = DAY_ORDER[a.hari] || 99;
     const dayB = DAY_ORDER[b.hari] || 99;
     if (dayA !== dayB) return dayA - dayB;
     return (a.jam || "").localeCompare(b.jam || "");
   });
+
+  if (!list.length) {
+    container.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-xs text-royal-navy/50 italic font-sans">Belum ada jadwal ibadah aktif</td></tr>`;
+    return;
+  }
 
   let html = "";
   list.forEach((item) => {
@@ -329,8 +387,14 @@ function renderJadwalPersekutuan() {
   const container = document.getElementById("jadwalPersekutuanList");
   if (!container) return;
 
+  const list = (APP_DB.jadwalPersekutuan || []).filter(item => item.active !== false);
+  if (!list.length) {
+    container.innerHTML = `<span class="text-xs text-royal-navy/50 italic font-sans text-center py-2">Belum ada persekutuan pekanan aktif</span>`;
+    return;
+  }
+
   let html = "";
-  (APP_DB.jadwalPersekutuan || []).forEach(item => {
+  list.forEach(item => {
     html += `
       <div class="p-2.5 rounded-xl bg-white/60 hover:bg-white/90 border border-sky-soft/80 flex items-center justify-between transition">
         <div class="flex items-center gap-2.5">
@@ -358,9 +422,9 @@ function renderDokumentasi() {
   const galleryContainer = document.getElementById("docGalleryGrid");
   if (!folderContainer || !galleryContainer) return;
 
-  const folders = APP_DB.dokumentasi || [];
+  const folders = (APP_DB.dokumentasi || []).filter(f => f.active !== false);
   if (!folders.length) {
-    folderContainer.innerHTML = `<span class="text-xs text-royal-navy/50">Belum ada album</span>`;
+    folderContainer.innerHTML = `<span class="text-xs text-royal-navy/50 italic">Belum ada album dokumentasi aktif</span>`;
     galleryContainer.innerHTML = "";
     return;
   }
@@ -467,7 +531,7 @@ function renderRenungan() {
   }
 
   const allArticles = APP_DB.renungan.articles || [];
-  const articles = allArticles.filter(a => a.folderId === currentRenunganFolderId);
+  const articles = allArticles.filter(a => a.folderId === currentRenunganFolderId && a.active !== false);
 
   if (!articles.length) {
     articlesListEl.innerHTML = `
@@ -648,9 +712,9 @@ function closeAdminModal() {
 
 function verifyAdminPin() {
   const inputPin = document.getElementById("adminPinInput").value.trim();
-  const validPin = APP_DB.church.pin || "1234";
+  const validPin = APP_DB.church.pin || "gosyen123";
 
-  if (inputPin === validPin || inputPin === "1234" || inputPin === "1921") {
+  if (inputPin === validPin || inputPin === "gosyen123") {
     document.getElementById("pinStep").classList.add("hidden");
     document.getElementById("adminDashboardStep").classList.remove("hidden");
     populateAdminDashboard();
@@ -658,7 +722,7 @@ function verifyAdminPin() {
   } else {
     const err = document.getElementById("pinErrorMessage");
     err.classList.remove("hidden");
-    err.textContent = "PIN salah! Gunakan PIN demo: 1234";
+    err.textContent = "Kata sandi salah! Gunakan: gosyen123";
   }
 }
 
@@ -683,6 +747,7 @@ function populateAdminDashboard() {
   renderAdminPersekutuanList();
   renderAdminDocFolders();
   renderAdminRenunganSelects();
+  renderAdminVisibilityList();
 
   document.getElementById("adminCloudUrlInput").value = (APP_DB.cloudConfig && APP_DB.cloudConfig.apiUrl) || "";
 }
@@ -879,7 +944,7 @@ function downloadCollagePNG() {
 }
 
 // -------------------------------------------------------------
-// JADWAL IBADAH ADMIN CRUD
+// JADWAL IBADAH ADMIN CRUD (DENGAN TOMBOL AKTIF / NONAKTIF)
 // -------------------------------------------------------------
 function renderAdminJadwalTable() {
   const container = document.getElementById("adminJadwalListContainer");
@@ -887,22 +952,42 @@ function renderAdminJadwalTable() {
 
   let html = "";
   (APP_DB.jadwalIbadah || []).forEach(item => {
+    const isItemActive = item.active !== false;
     html += `
       <div class="p-2.5 rounded-xl bg-white border border-sky-soft flex items-center justify-between text-xs gap-2">
         <div class="flex flex-col">
-          <div class="font-bold text-royal-navy font-serif">
-            <span class="bg-sky-cloud px-1.5 py-0.5 rounded text-[10px] text-antique-gold mr-1">${item.hari}</span>
-            ${item.nama} (${item.jam})
+          <div class="font-bold text-royal-navy font-serif flex items-center gap-1.5 flex-wrap">
+            <span class="bg-sky-cloud px-1.5 py-0.5 rounded text-[10px] text-antique-gold">${item.hari}</span>
+            <span>${item.nama} (${item.jam})</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${isItemActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'}">
+              ${isItemActive ? 'Aktif' : 'Nonaktif'}
+            </span>
           </div>
           <span class="text-[10px] text-royal-navy/60">${item.keterangan || '-'}</span>
         </div>
-        <button type="button" onclick="deleteJadwalIbadah('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1">
-          <span class="material-symbols-outlined text-[17px]">delete</span>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" onclick="toggleJadwalActive('${item.id}')" title="${isItemActive ? 'Nonaktifkan (sembunyikan dari tabel)' : 'Aktifkan (tampilkan di tabel)'}" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition active:scale-95 ${isItemActive ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-300'}">
+            ${isItemActive ? 'Nonaktifkan' : 'Aktifkan'}
+          </button>
+          <button type="button" onclick="deleteJadwalIbadah('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus">
+            <span class="material-symbols-outlined text-[17px]">delete</span>
+          </button>
+        </div>
       </div>
     `;
   });
   container.innerHTML = html || `<span class="text-xs text-royal-navy/50">Belum ada jadwal ibadah</span>`;
+}
+
+async function toggleJadwalActive(id) {
+  const item = (APP_DB.jadwalIbadah || []).find(j => j.id === id);
+  if (item) {
+    item.active = item.active === false ? true : false;
+    await saveDatabase();
+    renderAdminJadwalTable();
+    renderJadwalIbadah();
+    showToast(`Status "${item.nama}" diubah jadi ${item.active ? 'Aktif' : 'Nonaktif'}!`);
+  }
 }
 
 async function addJadwalIbadah() {
@@ -921,7 +1006,8 @@ async function addJadwalIbadah() {
     hari,
     jam,
     nama,
-    keterangan: ket
+    keterangan: ket,
+    active: true
   });
 
   await saveDatabase();
@@ -942,7 +1028,7 @@ async function deleteJadwalIbadah(id) {
 }
 
 // -------------------------------------------------------------
-// PERSEKUTUAN PEKANAN ADMIN CRUD
+// PERSEKUTUAN PEKANAN ADMIN CRUD (DENGAN TOMBOL AKTIF / NONAKTIF)
 // -------------------------------------------------------------
 function renderAdminPersekutuanList() {
   const container = document.getElementById("adminPersekutuanListContainer");
@@ -950,19 +1036,41 @@ function renderAdminPersekutuanList() {
 
   let html = "";
   (APP_DB.jadwalPersekutuan || []).forEach(item => {
+    const isItemActive = item.active !== false;
     html += `
       <div class="p-2.5 rounded-xl bg-white border border-sky-soft flex items-center justify-between text-xs gap-2">
         <div class="flex flex-col">
-          <span class="font-bold text-royal-navy font-serif">${item.nama}</span>
+          <div class="font-bold text-royal-navy font-serif flex items-center gap-1.5 flex-wrap">
+            <span>${item.nama}</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${isItemActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'}">
+              ${isItemActive ? 'Aktif' : 'Nonaktif'}
+            </span>
+          </div>
           <span class="text-[10px] text-royal-navy/60">${item.deskripsi} • <strong>${item.waktu}</strong></span>
         </div>
-        <button type="button" onclick="deletePersekutuan('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1">
-          <span class="material-symbols-outlined text-[17px]">delete</span>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" onclick="togglePersekutuanActive('${item.id}')" title="${isItemActive ? 'Nonaktifkan (sembunyikan dari daftar)' : 'Aktifkan (tampilkan di daftar)'}" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition active:scale-95 ${isItemActive ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-300'}">
+            ${isItemActive ? 'Nonaktifkan' : 'Aktifkan'}
+          </button>
+          <button type="button" onclick="deletePersekutuan('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus">
+            <span class="material-symbols-outlined text-[17px]">delete</span>
+          </button>
+        </div>
       </div>
     `;
   });
-  container.innerHTML = html;
+  container.innerHTML = html || `<span class="text-xs text-royal-navy/50">Belum ada persekutuan</span>`;
+}
+
+async function togglePersekutuanActive(id) {
+  const item = (APP_DB.jadwalPersekutuan || []).find(p => p.id === id);
+  if (item) {
+    item.active = item.active === false ? true : false;
+    await saveDatabase();
+    renderAdminPersekutuanList();
+    renderJadwalPersekutuan();
+    showToast(`Status "${item.nama}" diubah jadi ${item.active ? 'Aktif' : 'Nonaktif'}!`);
+  }
 }
 
 async function addPersekutuan() {
@@ -1243,4 +1351,70 @@ function showToast(msg) {
     toast.classList.remove("opacity-100", "translate-y-0");
     toast.classList.add("opacity-0", "pointer-events-none", "translate-y-2");
   }, 2600);
+}
+
+// -------------------------------------------------------------
+// PENGATURAN STATUS TAMPILAN / VISIBILITAS MENU (AKTIFKAN / NONAKTIFKAN)
+// -------------------------------------------------------------
+const VISIBILITY_CONFIG = [
+  { key: "warta", label: "Lembar Warta Jemaat", desc: "Poster warta mingguan, tanggal edisi warta, layar penuh & tombol unduh", icon: "auto_stories" },
+  { key: "jadwalIbadah", label: "Tabel Jadwal Ibadah", desc: "Tabel jadwal ibadah raya hari Minggu s/d Sabtu beserta waktu pelaksanaan", icon: "church" },
+  { key: "jadwalPersekutuan", label: "Jadwal Persekutuan Pekanan", desc: "Jadwal kegiatan persekutuan mezbah keluarga, ibadah wanita, dsb.", icon: "event_note" },
+  { key: "dokumentasi", label: "Dokumentasi Kegiatan", desc: "Galeri foto kegiatan ibadah & dokumentasi pelayanan jemaat", icon: "photo_library" },
+  { key: "renungan", label: "Renungan Harian", desc: "Santapan rohani firman Tuhan beserta folder berjenjang", icon: "menu_book" },
+  { key: "maps", label: "Petunjuk Arah Google Maps", desc: "Tombol navigasi Google Maps menuju gedung gereja GPdI Gosyen Kaloran", icon: "location_on" }
+];
+
+function renderAdminVisibilityList() {
+  const container = document.getElementById("adminVisibilityList");
+  if (!container) return;
+
+  if (!APP_DB.visibility) {
+    APP_DB.visibility = {
+      warta: true,
+      jadwalIbadah: true,
+      jadwalPersekutuan: true,
+      dokumentasi: true,
+      renungan: true,
+      maps: true
+    };
+  }
+
+  let html = "";
+  VISIBILITY_CONFIG.forEach(item => {
+    const isVisible = APP_DB.visibility[item.key] !== false;
+    html += `
+      <div class="p-3 rounded-xl bg-white border border-sky-soft/80 flex items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl ${isVisible ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-400 border border-gray-200'} flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[19px]">${item.icon}</span>
+          </div>
+          <div class="flex flex-col text-left">
+            <div class="flex items-center gap-2">
+              <span class="font-serif font-bold text-royal-navy text-xs">${item.label}</span>
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isVisible ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${isVisible ? 'Aktif (Tampil)' : 'Nonaktif (Sembunyi)'}
+              </span>
+            </div>
+            <span class="text-[10px] text-royal-navy/60 font-sans leading-tight mt-0.5">${item.desc}</span>
+          </div>
+        </div>
+        <button type="button" onclick="toggleSectionVisibility('${item.key}')" class="px-3 py-1.5 rounded-xl font-serif text-[11px] font-bold shrink-0 transition active:scale-95 shadow-xs ${isVisible ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
+          ${isVisible ? 'Nonaktifkan' : 'Aktifkan'}
+        </button>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+async function toggleSectionVisibility(key) {
+  if (!APP_DB.visibility) APP_DB.visibility = {};
+  APP_DB.visibility[key] = APP_DB.visibility[key] === false ? true : false;
+  await saveDatabase();
+  renderAdminVisibilityList();
+  renderAll();
+  const stateStr = APP_DB.visibility[key] ? "diaktifkan (tampil di halaman)" : "dinonaktifkan (disembunyikan dari halaman)";
+  showToast(`Menu berhasil ${stateStr}!`);
 }

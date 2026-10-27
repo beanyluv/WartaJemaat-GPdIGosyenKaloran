@@ -25,14 +25,22 @@ DEFAULT_DATABASE = {
         "headerTop": "GPdI Gosyen Kaloran",
         "headerBottom": "Warta Jemaat",
         "mapsUrl": "https://maps.app.goo.gl/CNYqT17tYnc58aD1A",
-        "pin": "1234"
+        "pin": "gosyen123"
+    },
+    "visibility": {
+        "warta": True,
+        "jadwalIbadah": True,
+        "jadwalPersekutuan": True,
+        "dokumentasi": True,
+        "renungan": True,
+        "maps": True
     },
     "warta": {
         "editionDate": "November 2026",
         "subtitle": "Edisi Ibadah Raya & Perjamuan Kudus",
         "imageUrl": "./assets/warta-sample.png",
         "updatedAt": "November 2026",
-        "createdAt": 1761555600000,
+        "createdAt": 1793088000000,
         "isExpired": False
     },
     "jadwalIbadah": [

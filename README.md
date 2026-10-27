@@ -10,7 +10,7 @@ Portal Warta Jemaat Digital resmi untuk **Gereja Pantekosta di Indonesia (GPdI) 
 
 - **Platform**: Cloudflare Pages (Resmi, Cepat & Bersih tanpa embel-embel username)
 - **Akses Langsung**: Tanpa konfirmasi IP, tanpa login, langsung terbuka instan untuk seluruh jemaat.
-- **PIN Akses Pengelola**: **`1234`** *(Tombol gembok kecil di bagian footer halaman)*
+- **Kata Sandi Pengelola**: **`gosyen123`** *(Tombol gembok kecil di bagian footer halaman)*
 - **Petunjuk Arah Google Maps**: **[https://maps.app.goo.gl/CNYqT17tYnc58aD1A](https://maps.app.goo.gl/CNYqT17tYnc58aD1A)**
 
 ---
