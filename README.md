@@ -4,13 +4,13 @@ Portal Warta Jemaat Digital resmi untuk **Gereja Pantekosta di Indonesia (GPdI) 
 
 ---
 
-## 🌐 Tautan Resmi Publik (Siap Pakai untuk Jemaat)
+## 🌐 Tautan Resmi Publik (Cloudflare)
 
-👉 **[https://beanyluv.github.io/WartaJemaat-GPdIGosyenKaloran/](https://beanyluv.github.io/WartaJemaat-GPdIGosyenKaloran/)**
+👉 **[https://wartajemaat-gpdigosyenkaloran.pages.dev/](https://wartajemaat-gpdigosyenkaloran.pages.dev/)**
 
-- **Status**: Aktif 100% online di GitHub Pages resmi.
-- **Akses Langsung**: Tanpa konfirmasi IP, tanpa kata sandi, langsung terbuka untuk jemaat dari ponsel maupun komputer.
-- **PIN Akses Pengelola**: **`1234`** *(Tombol gembok kecil di bagian paling bawah halaman)*
+- **Platform**: Cloudflare Pages (Resmi, Cepat & Bersih tanpa embel-embel username)
+- **Akses Langsung**: Tanpa konfirmasi IP, tanpa login, langsung terbuka instan untuk seluruh jemaat.
+- **PIN Akses Pengelola**: **`1234`** *(Tombol gembok kecil di bagian footer halaman)*
 - **Petunjuk Arah Google Maps**: **[https://maps.app.goo.gl/CNYqT17tYnc58aD1A](https://maps.app.goo.gl/CNYqT17tYnc58aD1A)**
 
 ---
