@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Penggabung Gambar Kolase - 100% HD & Otomatis Urut Nama File</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 820px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+    .card {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+    h2 { margin-top: 0; color: #0f172a; }
+    p.subtitle { color: #475569; font-size: 15px; margin-bottom: 20px; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      align-items: center;
+      background: #f8fafc;
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px dashed #cbd5e1;
+      margin-bottom: 20px;
+    }
+    .setting-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .setting-group input[type="number"] {
+      width: 70px;
+      padding: 6px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .file-list {
+      text-align: left;
+      background: #f8fafc;
+      padding: 16px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin: 16px 0;
+      display: none;
+      border: 1px solid #e2e8f0;
+    }
+    .file-list ol { margin: 8px 0 0 0; padding-left: 20px; }
+    .file-list li { margin-bottom: 4px; color: #334155; }
+    .badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    .btn-group { display: flex; gap: 12px; justify-content: center; margin-top: 10px; }
+    button {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 12px 26px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #1d4ed8; }
+    button.secondary { background: #059669; }
+    button.secondary:hover { background: #047857; }
+    button:disabled { background: #94a3b8; cursor: not-allowed; }
+    #previewContainer { margin-top: 24px; }
+    canvas {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .info-res { font-size: 13px; color: #64748b; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Penggabung Gambar Kolase 2 Kolom (100% HD)</h2>
+    <p class="subtitle">
+      Otomatis diurutkan berdasarkan <strong>Nama File (A–Z / 1–9)</strong>. Tanpa pemotongan (Zero-Crop), dan jika jumlah gambar ganjil, gambar terakhir otomatis berada <strong>di tengah</strong>.
+    </p>
+
+    <div class="controls">
+      <input type="file" id="fileInput" multiple accept="image/*" onchange="tampilkanUrutanDanPreview()">
+      <div class="setting-group">
+        <label for="spacingInput">Jarak Antar Gambar (px):</label>
+        <input type="number" id="spacingInput" value="30" min="0" max="200" onchange="tampilkanUrutanDanPreview()">
+      </div>
+      <div class="setting-group">
+        <label for="borderInput">Margin Tepi (px):</label>
+        <input type="number" id="borderInput" value="30" min="0" max="200" onchange="tampilkanUrutanDanPreview()">
+      </div>
+    </div>
+
+    <div id="fileListBox" class="file-list">
+      <strong>Urutan Gambar Berdasarkan Nama File:</strong>
+      <ol id="orderedFileNames"></ol>
+    </div>
+
+    <div class="btn-group">
+      <button id="downloadBtn" class="secondary" onclick="unduhKolase()" disabled>
+        Unduh Kolase HD (.PNG)
+      </button>
+    </div>
+
+    <div id="previewContainer"></div>
+    <div id="resInfo" class="info-res"></div>
+  </div>
+
+  <script>
+    let currentCanvas = null;
+
+    // Fungsi urut nama file secara natural (A-Z dan angka 1, 2, 10 terurut benar)
+    function urutkanBerdasarkanNamaFile(files) {
+      return files.sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+      );
+    }
+
+    async function tampilkanUrutanDanPreview() {
+      const fileInput = document.getElementById('fileInput');
+      const fileListBox = document.getElementById('fileListBox');
+      const orderedListEl = document.getElementById('orderedFileNames');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const previewContainer = document.getElementById('previewContainer');
+      const resInfo = document.getElementById('resInfo');
+
+      let files = Array.from(fileInput.files);
+      if (!files.length) {
+        fileListBox.style.display = 'none';
+        downloadBtn.disabled = true;
+        previewContainer.innerHTML = '';
+        resInfo.textContent = '';
+        return;
+      }
+
+      // 1. Urutkan berdasarkan nama file
+      files = urutkanBerdasarkanNamaFile(files);
+      const n = files.length;
+      const cols = 2;
+      const rows = Math.ceil(n / cols);
+
+      // Tampilkan daftar urutan ke pengguna
+      orderedListEl.innerHTML = '';
+      files.forEach((f, idx) => {
+        const r = Math.floor(idx / cols) + 1;
+        const c = (idx % cols) + 1;
+        const isLastOdd = (n % 2 === 1) && (idx === n - 1);
+        const posText = isLastOdd
+          ? `Baris ${r} — Posisi Tengah`
+          : `Baris ${r}, Kolom ${c}`;
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${f.name}</strong> <span class="badge">${posText}</span>`;
+        orderedListEl.appendChild(li);
+      });
+      fileListBox.style.display = 'block';
+
+      // 2. Muat semua gambar
+      const images = await Promise.all(files.map(file => new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = URL.createObjectURL(file);
+      })));
+
+      const spacing = parseInt(document.getElementById('spacingInput').value) || 0;
+      const border = parseInt(document.getElementById('borderInput').value) || 0;
+
+      // 3. Gunakan resolusi lebar tertinggi agar 100% HD (tidak ada penurunan piksel)
+      const colW = Math.max(...images.map(img => img.naturalWidth));
+
+      // Hitung dimensi proporsional tiap gambar tanpa memotong (zero-crop)
+      const scaled = images.map(img => {
+        const scale = colW / img.naturalWidth;
+        return {
+          img,
+          w: colW,
+          h: Math.round(img.naturalHeight * scale)
+        };
+      });
+
+      // 4. Hitung tinggi masing-masing baris mengikuti gambar tertinggi di baris tersebut
+      const rowHeights = [];
+      for (let r = 0; r < rows; r++) {
+        const slice = scaled.slice(r * cols, (r + 1) * cols);
+        rowHeights.push(Math.max(...slice.map(item => item.h)));
+      }
+
+      // 5. Buat kanvas beresolusi penuh
+      const canvas = document.createElement('canvas');
+      canvas.width = cols * colW + (cols - 1) * spacing + 2 * border;
+      canvas.height = rowHeights.reduce((a, b) => a + b, 0) + (rows - 1) * spacing + 2 * border;
+
+      const ctx = canvas.getContext('2d');
+      // Latar belakang putih bersih (aman untuk PNG transparan)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // 6. Gambar ke dalam kanvas (jika baris terakhir hanya 1 gambar / ganjil, taruh di tengah)
+      let currentY = border;
+      for (let r = 0; r < rows; r++) {
+        const rowH = rowHeights[r];
+        const itemsInThisRow = (r === rows - 1 && n % cols !== 0) ? (n % cols) : cols;
+
+        for (let c = 0; c < itemsInThisRow; c++) {
+          const idx = r * cols + c;
+          const item = scaled[idx];
+
+          let x;
+          if (itemsInThisRow === 1) {
+            // Jika ganjil (hanya 1 gambar di baris terakhir), posisikan tepat di tengah kanvas
+            x = Math.floor((canvas.width - item.w) / 2);
+          } else {
+            x = border + c * (colW + spacing);
+          }
+
+          const y = currentY + Math.floor((rowH - item.h) / 2);
+          ctx.drawImage(item.img, x, y, item.w, item.h);
+        }
+        currentY += rowH + spacing;
+      }
+
+      currentCanvas = canvas;
+      previewContainer.innerHTML = '';
+      previewContainer.appendChild(canvas);
+      resInfo.textContent = `Resolusi Akhir Kolase: ${canvas.width} x ${canvas.height} piksel (100% Lossless PNG)`;
+      downloadBtn.disabled = false;
+    }
+
+    function unduhKolase() {
+      if (!currentCanvas) return;
+      const link = document.createElement('a');
+      link.download = 'Kolase_HD_Urut_NamaFile.png';
+      link.href = currentCanvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>

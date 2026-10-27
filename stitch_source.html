@@ -1,0 +1,425 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+<title>GPdI Warta Jemaat Digital</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&amp;family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "sky-cloud": "#edf5fc",
+            "sky-soft": "#d6e8f6",
+            "sky-mid": "#a9cee8",
+            "royal-navy": "#1a395b",
+            "deep-blue": "#0f263f",
+            "vintage-gold": "#c8a562",
+            "antique-gold": "#b58d3d",
+            "ethereal-border": "rgba(255, 255, 255, 0.75)"
+          },
+          fontFamily: {
+            serif: ["'Cinzel'", "'Cormorant Garamond'", "serif"],
+            classic: ["'Cormorant Garamond'", "serif"],
+            sans: ["'Plus Jakarta Sans'", "sans-serif"]
+          },
+          boxShadow: {
+            'rococo': '0 10px 30px -5px rgba(26, 57, 91, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset',
+            'vintage-frame': '0 8px 24px rgba(26, 57, 91, 0.12), inset 0 0 0 1.5px rgba(200, 165, 98, 0.45)'
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      background: radial-gradient(circle at 50% 15%, #ffffff 0%, #ebf4fb 40%, #d8e9f6 75%, #c5def0 100%);
+      min-height: 100vh;
+    }
+    .cloud-layer {
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,255,255,0.95), transparent 80%),
+                  radial-gradient(ellipse 60% 40% at 85% 30%, rgba(255,255,255,0.7), transparent 60%),
+                  radial-gradient(ellipse 70% 45% at 10% 45%, rgba(255,255,255,0.65), transparent 65%),
+                  radial-gradient(ellipse 90% 50% at 50% 90%, rgba(214,232,246,0.6), transparent 75%);
+    }
+    .rococo-filigree {
+      background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.9) 0%, rgba(240,247,253,0.75) 100%);
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+</style>
+</head>
+<body class="font-sans text-royal-navy antialiased flex flex-col justify-between selection:bg-sky-mid selection:text-royal-navy relative overflow-x-hidden">
+<!-- Ethereal Sky & Cloud Texture Overlays -->
+<div class="fixed inset-0 cloud-layer pointer-events-none z-0"></div>
+<!-- Floating Subtle Baroque Floral / Ribbon Silhouette Background Deco -->
+<div class="fixed top-0 left-0 right-0 h-96 opacity-40 pointer-events-none z-0 flex justify-between px-2">
+<svg class="w-36 h-36 text-white/90" fill="currentColor" viewBox="0 0 100 100">
+<path d="M10,20 Q35,5 50,30 Q35,55 10,20 Z" opacity="0.3"></path>
+<path d="M5,40 Q40,30 35,65 Q10,65 5,40 Z" opacity="0.25"></path>
+<circle cx="45" cy="35" fill="#f8fafc" opacity="0.6" r="5"></circle>
+</svg>
+<svg class="w-36 h-36 text-white/90 scale-x-[-1]" fill="currentColor" viewBox="0 0 100 100">
+<path d="M10,20 Q35,5 50,30 Q35,55 10,20 Z" opacity="0.3"></path>
+<path d="M5,40 Q40,30 35,65 Q10,65 5,40 Z" opacity="0.25"></path>
+<circle cx="45" cy="35" fill="#f8fafc" opacity="0.6" r="5"></circle>
+</svg>
+</div>
+<!-- Header Sticky Ethereal Glass -->
+<header class="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-white/80 shadow-sm">
+<div class="max-w-md mx-auto px-4 h-14 flex items-center justify-center relative">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-white/90 p-1 shadow-sm ring-1 ring-vintage-gold/50 flex items-center justify-center overflow-hidden">
+<img alt="GPdI Logo" class="h-full w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUEUWriyPiYpgVWDfz78KDvPjZDMsPgpkFNK1GyHVi50VPd8bEzLwKGCZsAgyQzFwXLXAWMCHQC7YmyQHw1zSZg9tCGCKJykX_jwpJYFhQy9cWwUka8yricvNOxuPUXhxULRlvEcaUwpgTb5WLuQfF9PkuiUGTSL_KJVgUOrDqALcz0HCKYUHTBcJ-Ss1aclLifVtRXSPu2WnP4GiW7_ZFaMsDH9CFx7SS1P-V2Mi-oQXIVGNislo3qmmQaxnvsIBnjg">
+</div>
+<div class="flex flex-col text-center">
+<span class="font-serif text-[14px] font-bold text-royal-navy tracking-widest uppercase">GPdI Jemaat</span>
+<span class="text-[9px] font-medium tracking-[0.2em] text-antique-gold uppercase -mt-0.5">Warta Digital</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Container -->
+<main class="w-full relative z-10 px-4 pt-6 pb-12 flex flex-col items-center">
+<div class="w-full max-w-md flex flex-col items-center space-y-5">
+<!-- Hero Baroque Frame & Church Identity -->
+<div class="w-full flex flex-col items-center text-center pt-2">
+<!-- Oval Classical Rococo Portrait Frame -->
+<div class="relative mb-3.5">
+<!-- Rococo Ornament Rings -->
+<div class="absolute -inset-3 rounded-full border border-vintage-gold/30 scale-105 pointer-events-none"></div>
+<div class="absolute -inset-1.5 rounded-full border border-white/90 shadow-sm pointer-events-none"></div>
+<div class="w-24 h-24 rounded-full p-1.5 bg-gradient-to-b from-white via-sky-cloud to-sky-soft shadow-rococo ring-1 ring-vintage-gold/60 flex items-center justify-center">
+<div class="w-full h-full rounded-full bg-white/95 p-2.5 shadow-inner flex items-center justify-center overflow-hidden border border-sky-soft/70">
+<img alt="GPdI Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUEUWriyPiYpgVWDfz78KDvPjZDMsPgpkFNK1GyHVi50VPd8bEzLwKGCZsAgyQzFwXLXAWMCHQC7YmyQHw1zSZg9tCGCKJykX_jwpJYFhQy9cWwUka8yricvNOxuPUXhxULRlvEcaUwpgTb5WLuQfF9PkuiUGTSL_KJVgUOrDqALcz0HCKYUHTBcJ-Ss1aclLifVtRXSPu2WnP4GiW7_ZFaMsDH9CFx7SS1P-V2Mi-oQXIVGNislo3qmmQaxnvsIBnjg">
+</div>
+</div>
+<span class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-white text-antique-gold px-2.5 py-0.5 rounded-full text-[10px] font-serif font-bold uppercase tracking-wider shadow-sm border border-vintage-gold/40 flex items-center gap-1 whitespace-nowrap">
+<span class="material-symbols-outlined text-[13px] text-antique-gold">verified</span>
+<span class="">Gosyen</span>
+</span>
+</div>
+<!-- Baroque Title & Typography -->
+<h1 class="font-serif text-2xl font-bold text-royal-navy tracking-wider uppercase mt-1">GPdI Warta Jemaat</h1>
+<p class="font-classic italic text-sm text-royal-navy/70 tracking-wide -mt-0.5">Gereja Pantekosta di Indonesia</p>
+<!-- Grace Banner -->
+<div class="mt-2.5 px-4 py-1.5 rounded-full bg-white/70 backdrop-blur-sm border border-white/90 shadow-sm text-[11px] text-royal-navy/80 font-medium flex items-center gap-1.5">
+<span class="text-antique-gold font-serif text-xs">❦</span>
+<span class="font-classic italic text-xs tracking-wide">Selamat Melayani • Tuhan Yesus Memberkati Kita Semua</span>
+<span class="text-antique-gold font-serif text-xs">❦</span>
+</div>
+</div>
+<!-- Classical Date Calendar & Announcement Card (Modeled after Inspiration Date Element) -->
+<div class="w-full rounded-2xl bg-white/75 backdrop-blur-md border border-white/90 shadow-rococo p-4 relative overflow-hidden">
+<!-- Decorative background filigree corner -->
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-sky-soft/40 blur-xl pointer-events-none"></div>
+<div class="flex flex-col items-center text-center">
+<span class="font-serif text-[11px] font-bold tracking-[0.25em] text-antique-gold uppercase">Warta Pekan Ini</span>
+<div class="w-12 h-px bg-vintage-gold/50 my-1"></div>
+<h3 class="font-serif text-lg font-bold text-royal-navy tracking-wide">Minggu, 1 November 2026</h3>
+<p class="text-xs font-classic italic text-royal-navy/70 mt-0.5">Pukul 06.00 WIB • Ibadah Raya &amp; Perjamuan Kudus</p>
+</div>
+<!-- Mini Classical Calendar Ribbon Badge -->
+<div class="mt-3.5 pt-3 border-t border-sky-mid/30 grid grid-cols-7 gap-1 text-center font-serif text-[10px] text-royal-navy/60">
+<div class="font-bold text-antique-gold">MIN</div>
+<div class="">SEN</div>
+<div class="">SEL</div>
+<div class="">RAB</div>
+<div class="">KAM</div>
+<div class="">JUM</div>
+<div class="">SAB</div>
+<div class="p-1 rounded-full bg-royal-navy text-white font-bold ring-2 ring-vintage-gold/50">01</div>
+<div class="p-1">02</div>
+<div class="p-1">03</div>
+<div class="p-1">04</div>
+<div class="p-1">05</div>
+<div class="p-1">06</div>
+<div class="p-1">07</div>
+</div>
+</div>
+<!-- Feature Card: Warta Jemaat Digital Display with Rococo Frame -->
+<section class="w-full rounded-3xl bg-white/80 backdrop-blur-md border border-white shadow-vintage-frame p-4 flex flex-col gap-3.5 relative" id="wartaSection">
+<!-- Rococo Header Label -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-antique-gold text-[20px]">auto_stories</span>
+<div class="flex flex-col">
+<h2 class="font-serif text-sm font-bold text-royal-navy tracking-wide uppercase">Lembar Warta Jemaat</h2>
+<span class="text-[10px] text-royal-navy/60 font-sans" id="updateTimestamp">Edisi Ibadah Raya &amp; Perjamuan Kudus</span>
+</div>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-sky-soft/70 text-royal-navy text-[10px] font-serif font-bold tracking-wider border border-white/80 shadow-sm uppercase">Terbaru</span>
+</div>
+<!-- Warta Image Frame with Classical Curved Corners -->
+<div class="relative w-full rounded-2xl p-2 bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 shadow-inner group">
+<div class="relative aspect-[3/4] max-h-[380px] w-full overflow-y-auto rounded-xl bg-white cursor-pointer shadow-md" onclick="openLightbox()">
+<img alt="Warta Jemaat GPdI" class="w-full object-top object-cover transition-transform duration-500 group-hover:scale-[1.02]" id="wartaImagePreview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATJDcCnbN3UxFyzGKSxUnuBVHhx-FZMZcqtvnDnTVzMDG94-xfmT4xc-_yIh8EE2cemvxrD3LcmEF9J6yRU8li-IEo05R7IRWufU46sUDcd1YrJwVKxjvdZyXBn0MB5pv-NiTst9UkG4jHp9V7NCHBu2qUpmCxjf77Ajx0t-EpLq4Xe-bm2WLqdZnqj1eeSoytcpYor35AFSopMeM81OAL_f_FcGRb-OEBV8nm4RBMaz_U8OSKL-gyM_YO5fDWYDmlXQ">
+<!-- Touch to Zoom Floating Pill -->
+<div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md border border-vintage-gold/50 text-royal-navy text-[11px] font-serif font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md pointer-events-none">
+<span class="material-symbols-outlined text-[14px] text-antique-gold">zoom_in</span>
+<span class="">Sentuh untuk Perbesar</span>
+</div>
+</div>
+</div>
+<!-- Interaction Buttons (Layar Penuh & Unduh) -->
+<div class="grid grid-cols-2 gap-2.5 pt-0.5 font-serif">
+<button class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-semibold shadow-sm transition active:scale-95" onclick="openLightbox()">
+<span class="material-symbols-outlined text-[17px] text-vintage-gold">fullscreen</span>
+<span class="">Layar Penuh</span>
+</button>
+<a class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-sky-cloud border border-vintage-gold/50 text-royal-navy text-xs font-semibold shadow-sm transition active:scale-95" download="Warta-Jemaat-GPdI.png" href="https://lh3.googleusercontent.com/aida-public/AB6AXuATJDcCnbN3UxFyzGKSxUnuBVHhx-FZMZcqtvnDnTVzMDG94-xfmT4xc-_yIh8EE2cemvxrD3LcmEF9J6yRU8li-IEo05R7IRWufU46sUDcd1YrJwVKxjvdZyXBn0MB5pv-NiTst9UkG4jHp9V7NCHBu2qUpmCxjf77Ajx0t-EpLq4Xe-bm2WLqdZnqj1eeSoytcpYor35AFSopMeM81OAL_f_FcGRb-OEBV8nm4RBMaz_U8OSKL-gyM_YO5fDWYDmlXQ" id="btnDownloadWarta">
+<span class="material-symbols-outlined text-[17px] text-antique-gold">download</span>
+<span class="">Unduh Warta</span>
+</a>
+</div>
+<!-- Hidden file input for live replacement -->
+<input accept="image/*" class="hidden" id="wartaFileInput" onchange="handleLiveImageUpload(event)" type="file">
+</section>
+<!-- Essential Remaining Church Services Buttons (Glass Sky Chic Style) -->
+<nav class="w-full flex flex-col gap-2.5">
+<!-- 1. Jadwal Ibadah & Pelayan Altar -->
+<div class="rounded-2xl bg-white/75 backdrop-blur-md border border-white/90 shadow-sm overflow-hidden">
+<button class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition" onclick="toggleAccordion('jadwalDetail')">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[22px] text-royal-navy">church</span>
+</div>
+<div class="flex flex-col">
+<span class="font-serif text-xs font-bold text-royal-navy tracking-wide">Jadwal Ibadah &amp; Petugas</span>
+<span class="text-[11px] text-royal-navy/60 font-sans">Ibadah Raya, Perjamuan &amp; Pelayan Altar</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="jadwalDetailArrow">expand_more</span>
+</button>
+<!-- Accordion Details -->
+<div class="hidden px-4 pb-4 pt-1 border-t border-sky-soft/70 text-xs space-y-2 bg-sky-cloud/40" id="jadwalDetail">
+<div class="p-3 rounded-xl bg-white/80 border border-sky-mid/30 flex flex-col gap-1.5 shadow-sm">
+<div class="flex justify-between items-center text-antique-gold font-serif font-bold text-[10px] uppercase tracking-wider">
+<span class="">Minggu Ini • 06.00 WIB</span>
+<span class="bg-sky-soft/60 px-2 py-0.5 rounded-full text-[9px] text-royal-navy">Gereja Pusat</span>
+</div>
+<p class="font-serif font-bold text-royal-navy text-[13px]">Ibadah Raya &amp; Perjamuan Kudus</p>
+<div class="grid grid-cols-2 gap-2 text-[11px] text-royal-navy/70 pt-1 border-t border-sky-soft/50">
+<div class=""><span class="font-semibold text-royal-navy">Pemimpin:</span> Bp David S, Ibu Eka</div>
+<div class=""><span class="font-semibold text-royal-navy">Musik:</span> Sdri Cellona, Rafa</div>
+<div class=""><span class="font-semibold text-royal-navy">Firman:</span> Ibu Sri M</div>
+<div class=""><span class="font-semibold text-royal-navy">Syafaat:</span> Bp Gembala</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. Petunjuk Arah & Peta Gereja -->
+<a class="w-full p-3.5 rounded-2xl bg-white/75 backdrop-blur-md hover:bg-white border border-white/90 flex items-center justify-between shadow-sm transition active:scale-[0.99]" href="https://maps.google.com" rel="noopener noreferrer" target="_blank">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[22px] text-royal-navy">location_on</span>
+</div>
+<div class="flex flex-col text-left">
+<span class="font-serif text-xs font-bold text-royal-navy tracking-wide">Petunjuk Arah &amp; Lokasi Gereja</span>
+<span class="text-[11px] text-royal-navy/60 font-sans">Navigasi Google Maps ke Gedung Gereja</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-royal-navy/40 text-[18px]">directions</span>
+</a>
+</nav>
+<!-- Kartu Info Mingguan: Jadwal Persekutuan Pekanan (Pastel Sky Card) -->
+
+</div>
+</main>
+<!-- Mobile Footer with Discreet Admin Lock at Bottom -->
+<footer class="w-full relative z-10 bg-white/70 backdrop-blur-md border-t border-white/80 py-7 px-4">
+<div class="max-w-md mx-auto text-center flex flex-col items-center gap-2.5">
+<div class="flex items-center gap-1.5 text-royal-navy">
+<span class="font-serif font-bold text-xs uppercase tracking-widest">Gereja Pantekosta di Indonesia</span>
+</div>
+<p class="font-classic italic text-xs text-royal-navy/70 leading-relaxed max-w-xs">
+      Melayani Tubuh Kristus dengan Kasih, Kebenaran, dan Kuasa Roh Kudus.
+    </p>
+<div class="w-16 h-px bg-vintage-gold/30 my-1"></div>
+<span class="text-[10px] text-royal-navy/50 font-serif tracking-wider">© 2026 GPdI Gosyen Kaloran Present</span>
+<!-- PENGELOLA LOCK BUTTON: Di Paling Bawah, Rapi, Kecil, & Diskret -->
+<div class="pt-3">
+<button class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/80 hover:bg-white text-royal-navy/50 hover:text-royal-navy text-[10px] font-sans border border-sky-mid/30 shadow-xs transition active:scale-95" onclick="openAdminModal()">
+<span class="material-symbols-outlined text-[13px] text-antique-gold">lock</span>
+<span class="">Akses Pengelola</span>
+</button>
+</div>
+</div>
+</footer>
+<!-- MODAL 1: Lightbox Fullscreen Warta Jemaat -->
+<div class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl hidden flex-col" id="lightboxModal">
+<div class="w-full h-14 px-4 flex items-center justify-between border-b border-white/10 shrink-0 bg-black/50 text-white">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-vintage-gold text-[20px]">newspaper</span>
+<span class="font-serif text-xs font-bold tracking-wide">Warta Jemaat Layar Penuh</span>
+</div>
+<div class="flex items-center gap-2">
+<a class="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10" download="Warta-Jemaat-GPdI.png" href="https://lh3.googleusercontent.com/aida-public/AB6AXuATJDcCnbN3UxFyzGKSxUnuBVHhx-FZMZcqtvnDnTVzMDG94-xfmT4xc-_yIh8EE2cemvxrD3LcmEF9J6yRU8li-IEo05R7IRWufU46sUDcd1YrJwVKxjvdZyXBn0MB5pv-NiTst9UkG4jHp9V7NCHBu2qUpmCxjf77Ajx0t-EpLq4Xe-bm2WLqdZnqj1eeSoytcpYor35AFSopMeM81OAL_f_FcGRb-OEBV8nm4RBMaz_U8OSKL-gyM_YO5fDWYDmlXQ" id="modalDownloadBtn">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</a>
+<button class="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10" onclick="closeLightbox()">
+<span class="material-symbols-outlined text-[22px]">close</span>
+</button>
+</div>
+</div>
+<div class="flex-1 w-full overflow-y-auto overflow-x-hidden p-3 flex justify-center items-start">
+<img alt="Warta Jemaat Full" class="max-w-full md:max-w-md rounded-xl shadow-2xl object-contain ring-1 ring-white/20" id="lightboxImage" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATJDcCnbN3UxFyzGKSxUnuBVHhx-FZMZcqtvnDnTVzMDG94-xfmT4xc-_yIh8EE2cemvxrD3LcmEF9J6yRU8li-IEo05R7IRWufU46sUDcd1YrJwVKxjvdZyXBn0MB5pv-NiTst9UkG4jHp9V7NCHBu2qUpmCxjf77Ajx0t-EpLq4Xe-bm2WLqdZnqj1eeSoytcpYor35AFSopMeM81OAL_f_FcGRb-OEBV8nm4RBMaz_U8OSKL-gyM_YO5fDWYDmlXQ">
+</div>
+</div>
+<!-- MODAL 2: Kunci Pengelola & Ganti Warta Live (Classic & Clean UI) -->
+<div class="fixed inset-0 z-50 bg-royal-navy/60 backdrop-blur-md hidden items-center justify-center p-4" id="adminModal">
+<div class="w-full max-w-sm rounded-3xl bg-white border border-white shadow-2xl p-6 flex flex-col gap-4 relative">
+<div class="flex items-center justify-between border-b border-sky-soft pb-3">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-sky-soft/70 flex items-center justify-center text-royal-navy">
+<span class="material-symbols-outlined text-[18px] text-antique-gold">admin_panel_settings</span>
+</div>
+<div>
+<h3 class="font-serif text-sm font-bold text-royal-navy">Akses Pengelola Warta</h3>
+<p class="text-[10px] text-royal-navy/60 font-sans">Ganti gambar warta jemaat pekanan</p>
+</div>
+</div>
+<button class="text-royal-navy/50 hover:text-royal-navy p-1" onclick="closeAdminModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- PIN Step -->
+<div class="flex flex-col gap-3.5" id="pinStep">
+<p class="text-xs text-royal-navy/70 leading-relaxed font-sans">
+        Masukkan PIN Keamanan Pengelola untuk mengganti lembar warta:
+      </p>
+<div>
+<input class="w-full rounded-xl bg-sky-cloud/50 border border-sky-mid/50 text-center font-mono tracking-widest text-lg py-2.5 text-royal-navy focus:outline-none focus:border-vintage-gold focus:ring-1 focus:ring-vintage-gold" id="adminPinInput" maxlength="8" placeholder="••••" type="password">
+<p class="text-[11px] text-red-500 mt-1.5 hidden text-center" id="pinErrorMessage">PIN salah! Gunakan PIN pengelola.</p>
+</div>
+<button class="w-full py-2.5 rounded-xl bg-royal-navy text-white font-serif font-bold text-xs tracking-wider shadow-md transition active:scale-95 hover:bg-deep-blue" onclick="verifyAdminPin()">
+        Buka Akses Pengelola
+      </button>
+</div>
+<!-- Upload Step -->
+<div class="hidden flex-col gap-3.5" id="uploadStep">
+<div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2 font-medium">
+<span class="material-symbols-outlined text-[17px]">verified</span>
+<span class="">Akses diverifikasi. Silakan pilih berkas.</span>
+</div>
+<div class="w-full py-6 px-4 rounded-2xl border-2 border-dashed border-vintage-gold/60 bg-sky-cloud/50 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-sky-soft/50 transition" onclick="triggerFileUpload()">
+<span class="material-symbols-outlined text-antique-gold text-3xl mb-1">cloud_upload</span>
+<span class="font-serif text-xs font-bold text-royal-navy">Pilih Gambar Warta Baru</span>
+<span class="text-[10px] text-royal-navy/60 mt-0.5 font-sans">Format JPG, PNG, atau WEBP</span>
+</div>
+<button class="w-full py-2 rounded-xl bg-sky-soft/60 text-royal-navy text-xs font-serif font-semibold hover:bg-sky-soft transition" onclick="closeAdminModal()">
+        Selesai &amp; Tutup
+      </button>
+</div>
+</div>
+</div>
+<!-- Toast Notification -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-royal-navy text-white text-xs font-serif font-medium px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-all duration-300 border border-vintage-gold/40" id="toastNotification">
+  Pesan Notifikasi
+</div>
+<script>
+  // Lightbox
+  function openLightbox() {
+    const modal = document.getElementById('lightboxModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    const modal = document.getElementById('lightboxModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  // Admin Modal
+  function openAdminModal() {
+    const modal = document.getElementById('adminModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.getElementById('adminPinInput').value = '';
+    document.getElementById('pinErrorMessage').classList.add('hidden');
+    document.getElementById('pinStep').classList.remove('hidden');
+    document.getElementById('uploadStep').classList.add('hidden');
+    document.getElementById('uploadStep').classList.remove('flex');
+  }
+
+  function closeAdminModal() {
+    const modal = document.getElementById('adminModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  function verifyAdminPin() {
+    const pin = document.getElementById('adminPinInput').value.trim();
+    if (pin.length >= 3) {
+      document.getElementById('pinStep').classList.add('hidden');
+      document.getElementById('uploadStep').classList.remove('hidden');
+      document.getElementById('uploadStep').classList.add('flex');
+      showToast('Akses Pengelola Berhasil Terbuka');
+    } else {
+      document.getElementById('pinErrorMessage').classList.remove('hidden');
+    }
+  }
+
+  function triggerFileUpload() {
+    document.getElementById('wartaFileInput').click();
+  }
+
+  // Live Image Replacement
+  function handleLiveImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const newSrc = e.target.result;
+        document.getElementById('wartaImagePreview').src = newSrc;
+        document.getElementById('lightboxImage').src = newSrc;
+        document.getElementById('btnDownloadWarta').href = newSrc;
+        document.getElementById('modalDownloadBtn').href = newSrc;
+        
+        const now = new Date();
+        const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+        document.getElementById('updateTimestamp').textContent = 'Diperbarui live: ' + now.toLocaleDateString('id-ID', options) + ' WIB';
+        
+        showToast('Warta berhasil diperbarui secara live!');
+        closeAdminModal();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Accordions
+  function toggleAccordion(id) {
+    const el = document.getElementById(id);
+    const arrow = document.getElementById(id + 'Arrow');
+    if (el.classList.contains('hidden')) {
+      el.classList.remove('hidden');
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+    } else {
+      el.classList.add('hidden');
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  // Toast
+  function showToast(msg) {
+    const toast = document.getElementById('toastNotification');
+    toast.textContent = msg;
+    toast.classList.remove('opacity-0', 'pointer-events-none');
+    toast.classList.add('opacity-100');
+    setTimeout(() => {
+      toast.classList.remove('opacity-100');
+      toast.classList.add('opacity-0', 'pointer-events-none');
+    }, 2400);
+  }
+</script>
+
+
+</body></html>

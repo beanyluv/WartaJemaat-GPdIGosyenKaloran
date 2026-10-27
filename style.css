@@ -1,0 +1,134 @@
+/* Custom styles for GPdI Warta Jemaat Digital */
+
+:root {
+  --color-sky-cloud: #edf5fc;
+  --color-sky-soft: #d6e8f6;
+  --color-sky-mid: #a9cee8;
+  --color-royal-navy: #1a395b;
+  --color-deep-blue: #0f263f;
+  --color-vintage-gold: #c8a562;
+  --color-antique-gold: #b58d3d;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  background-color: #d2e4f3;
+  background-image: radial-gradient(circle at 50% 15%, #ffffff 0%, #ebf4fb 40%, #d8e9f6 75%, #c5def0 100%);
+  min-height: 100vh;
+}
+
+/* Heavenly Sky, Doves & Floral Background Artwork */
+.heavenly-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.heavenly-bg-inner {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  min-height: 100%;
+  box-shadow: 0 0 60px rgba(26, 57, 91, 0.12);
+}
+
+.heavenly-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0.95;
+}
+
+.heavenly-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 30%,
+    rgba(255, 255, 255, 0.05) 75%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  pointer-events: none;
+}
+
+.rococo-filigree {
+  background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(240, 247, 253, 0.75) 100%);
+}
+
+.shadow-rococo {
+  box-shadow: 0 10px 30px -5px rgba(26, 57, 91, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+}
+
+.shadow-vintage-frame {
+  box-shadow: 0 8px 24px rgba(26, 57, 91, 0.12), inset 0 0 0 1.5px rgba(200, 165, 98, 0.45);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(26, 57, 91, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 57, 91, 0.35);
+}
+
+/* Lightbox zoom smooth transition */
+#lightboxImage {
+  transition: transform 0.25s ease-out;
+}
+
+/* Touch active bounce */
+.btn-press {
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Admin Tabs Styling */
+.admin-tab-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a395b;
+  background: rgba(237, 245, 252, 0.7);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.admin-tab-btn.active {
+  background: #1a395b;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(26, 57, 91, 0.2);
+}
+
+/* Canvas Preview Container */
+#collagePreviewCanvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
