@@ -106,72 +106,56 @@
         </div>
       </div>
 
-      <!-- 1. LEMBAR WARTA JEMAAT (Accordion Minimalis) -->
-      <section id="wartaSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
-        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press" onclick="toggleAccordion('wartaAccordion')">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
-              <span class="material-symbols-outlined text-[22px] text-royal-navy">auto_stories</span>
-            </div>
-            <div class="flex flex-col">
-              <h3 class="font-serif text-xs font-bold text-royal-navy tracking-wide uppercase">Lembar Warta Jemaat</h3>
-              <span class="text-[11px] text-royal-navy/60 font-sans" id="wartaHeaderSubtitle">Edisi November 2026 • Sentuh untuk Membuka</span>
-            </div>
-          </div>
-          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="wartaAccordionArrow">expand_more</span>
-        </button>
+      <!-- Date Card (Edisi Warta Jemaat - Tetap Terbuka Penuh) -->
+      <div id="wartaDateCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 p-4 shadow-rococo relative overflow-hidden">
+        <div class="flex flex-col items-center text-center">
+          <span class="font-serif text-[11px] font-bold tracking-[0.25em] text-antique-gold uppercase">Warta Jemaat</span>
+          <div class="w-12 h-px bg-vintage-gold/50 my-1.5"></div>
+          <h2 id="displayDateTitle" class="font-serif text-xl font-bold text-royal-navy tracking-wide">November 2026</h2>
+          <p id="displayDateTime" class="text-xs font-classic italic text-royal-navy/70 mt-0.5">Edisi Ibadah Raya & Perjamuan Kudus</p>
+        </div>
+      </div>
 
-        <!-- Warta Accordion Body (Initially Collapsed) -->
-        <div class="p-4 flex flex-col gap-3.5 border-t border-sky-soft/60 hidden" id="wartaAccordion">
-          <!-- Simplified Date Card Inside Warta -->
-          <div id="wartaDateCard" class="w-full rounded-xl bg-sky-cloud/60 border border-sky-soft p-3 relative overflow-hidden">
-            <div class="flex flex-col items-center text-center">
-              <span class="font-serif text-[10px] font-bold tracking-[0.25em] text-antique-gold uppercase">Warta Jemaat</span>
-              <div class="w-10 h-px bg-vintage-gold/50 my-1"></div>
-              <h2 id="displayDateTitle" class="font-serif text-lg font-bold text-royal-navy tracking-wide">November 2026</h2>
-              <p id="displayDateTime" class="text-xs font-classic italic text-royal-navy/70 mt-0.5">Edisi Ibadah Raya & Perjamuan Kudus</p>
-            </div>
+      <!-- 1. LEMBAR WARTA JEMAAT (Tetap Tampil Penuh / Tidak Dikecilkan) -->
+      <section id="wartaSection" class="w-full rounded-3xl bg-white/80 backdrop-blur-md border border-white/90 p-4 shadow-rococo flex flex-col gap-3.5">
+        <!-- Warta Image Frame with Classical Curved Corners -->
+        <div id="wartaImageFrameContainer" class="relative w-full rounded-2xl p-2 bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 shadow-inner group">
+          <!-- Scrollable image viewer -->
+          <div class="relative aspect-[3/4] max-h-[460px] w-full overflow-y-auto rounded-xl bg-white cursor-pointer shadow-md" onclick="openLightbox()" title="Klik untuk membuka layar penuh">
+            <img id="wartaImagePreview" src="./assets/warta-sample.png" alt="Warta Jemaat GPdI Gosyen Kaloran" class="w-full object-top object-cover transition-transform duration-500 group-hover:scale-[1.01]">
           </div>
 
-          <!-- Warta Image Frame with Classical Curved Corners -->
-          <div id="wartaImageFrameContainer" class="relative w-full rounded-2xl p-2 bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 shadow-inner group">
-            <!-- Scrollable image viewer -->
-            <div class="relative aspect-[3/4] max-h-[380px] w-full overflow-y-auto rounded-xl bg-white cursor-pointer shadow-md" onclick="openLightbox()" title="Klik untuk membuka layar penuh">
-              <img id="wartaImagePreview" src="./assets/warta-sample.png" alt="Warta Jemaat GPdI Gosyen Kaloran" class="w-full object-top object-cover transition-transform duration-500 group-hover:scale-[1.01]">
-            </div>
-
-            <!-- Sentuh untuk Perbesar Statis -->
-            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md border border-vintage-gold/50 text-royal-navy text-[11px] font-serif font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg pointer-events-none z-20">
-              <span class="material-symbols-outlined text-[15px] text-antique-gold">zoom_in</span>
-              <span>Sentuh untuk Perbesar</span>
-            </div>
+          <!-- Sentuh untuk Perbesar Statis -->
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md border border-vintage-gold/50 text-royal-navy text-[11px] font-serif font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg pointer-events-none z-20">
+            <span class="material-symbols-outlined text-[15px] text-antique-gold">zoom_in</span>
+            <span>Sentuh untuk Perbesar</span>
           </div>
+        </div>
 
-          <!-- Expired Notice State (> 30 Days Auto-Cleanup) -->
-          <div id="wartaExpiredNotice" class="hidden w-full py-10 px-4 rounded-2xl bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 flex flex-col items-center justify-center text-center gap-2.5 shadow-inner">
-            <div class="w-12 h-12 rounded-full bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[24px]">history_toggle_off</span>
-            </div>
-            <h4 class="font-serif text-sm font-bold text-royal-navy">Lembar Warta Telah Kedaluwarsa</h4>
-            <p class="text-[11px] text-royal-navy/70 max-w-xs font-sans leading-relaxed">
-              Lembar warta jemaat sebelumnya telah berusia lebih dari 30 hari dan otomatis dibersihkan. Silakan pengelola mengunggah edisi warta terbaru.
-            </p>
-            <button type="button" onclick="openAdminModal()" class="mt-1 py-1.5 px-3 rounded-xl bg-royal-navy text-white text-[11px] font-serif font-semibold shadow-xs">
-              Unggah Warta Baru (Pengelola)
-            </button>
+        <!-- Expired Notice State (> 30 Days Auto-Cleanup) -->
+        <div id="wartaExpiredNotice" class="hidden w-full py-10 px-4 rounded-2xl bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 flex flex-col items-center justify-center text-center gap-2.5 shadow-inner">
+          <div class="w-12 h-12 rounded-full bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[24px]">history_toggle_off</span>
           </div>
+          <h4 class="font-serif text-sm font-bold text-royal-navy">Lembar Warta Telah Kedaluwarsa</h4>
+          <p class="text-[11px] text-royal-navy/70 max-w-xs font-sans leading-relaxed">
+            Lembar warta jemaat sebelumnya telah berusia lebih dari 30 hari dan otomatis dibersihkan. Silakan pengelola mengunggah edisi warta terbaru.
+          </p>
+          <button type="button" onclick="openAdminModal()" class="mt-1 py-1.5 px-3 rounded-xl bg-royal-navy text-white text-[11px] font-serif font-semibold shadow-xs">
+            Unggah Warta Baru (Pengelola)
+          </button>
+        </div>
 
-          <!-- Interaction Buttons (Layar Penuh & Unduh) -->
-          <div class="grid grid-cols-2 gap-2.5 pt-0.5 font-serif">
-            <button type="button" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-semibold shadow-sm transition active:scale-95 btn-press" onclick="openLightbox()">
-              <span class="material-symbols-outlined text-[17px] text-vintage-gold">fullscreen</span>
-              <span>Layar Penuh</span>
-            </button>
-            <a id="btnDownloadWarta" href="./assets/warta-sample.png" download="Warta-Jemaat-GPdI.png" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-sky-cloud border border-vintage-gold/50 text-royal-navy text-xs font-semibold shadow-sm transition active:scale-95 btn-press">
-              <span class="material-symbols-outlined text-[17px] text-antique-gold">download</span>
-              <span>Unduh Warta</span>
-            </a>
-          </div>
+        <!-- Interaction Buttons (Layar Penuh & Unduh) -->
+        <div class="grid grid-cols-2 gap-2.5 pt-0.5 font-serif">
+          <button type="button" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-semibold shadow-sm transition active:scale-95 btn-press" onclick="openLightbox()">
+            <span class="material-symbols-outlined text-[17px] text-vintage-gold">fullscreen</span>
+            <span>Layar Penuh</span>
+          </button>
+          <a id="btnDownloadWarta" href="./assets/warta-sample.png" download="Warta-Jemaat-GPdI.png" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-sky-cloud border border-vintage-gold/50 text-royal-navy text-xs font-semibold shadow-sm transition active:scale-95 btn-press">
+            <span class="material-symbols-outlined text-[17px] text-antique-gold">download</span>
+            <span>Unduh Warta</span>
+          </a>
         </div>
       </section>
 

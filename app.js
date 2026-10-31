@@ -267,9 +267,11 @@ function renderAll() {
 
   renderHeaderAndHero();
 
-  // 1. Warta Jemaat Card
-  const wartaCard = document.getElementById("wartaSectionCard") || document.getElementById("wartaSection");
-  if (wartaCard) wartaCard.style.display = vis.warta !== false ? "" : "none";
+  // 1. Warta Jemaat (Date Card & Sheet)
+  const wartaDateCard = document.getElementById("wartaDateCard");
+  const wartaSec = document.getElementById("wartaSection") || document.getElementById("wartaSectionCard");
+  if (wartaDateCard) wartaDateCard.style.display = vis.warta !== false ? "" : "none";
+  if (wartaSec) wartaSec.style.display = vis.warta !== false ? "" : "none";
   if (vis.warta !== false) {
     renderDateCard();
     renderWartaImage();
