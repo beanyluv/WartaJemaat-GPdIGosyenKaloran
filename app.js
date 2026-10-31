@@ -18,11 +18,36 @@ let APP_DB = {
   visibility: {
     warta: true,
     jadwalIbadah: true,
+    pengumuman: true,
     jadwalPersekutuan: true,
     dokumentasi: true,
     renungan: true,
     maps: true
   },
+  pengumuman: [
+    {
+      id: "ann_1",
+      judul: "Ibadah Syukur & Perjamuan Kudus Awal Bulan",
+      deskripsi: "Mengundang seluruh jemaat GPdI Gosyen Kaloran untuk hadir bersekutu bersama dalam Ibadah Raya & Perjamuan Kudus. Mari mempersiapkan hati untuk menerima berkat & kekuatan baru di hadirat Tuhan.",
+      tanggal: "1 November 2026",
+      mediaType: "image",
+      mediaUrl: "./assets/warta-sample.png",
+      fileName: "warta-november.png",
+      active: true,
+      createdAt: 1793088000000
+    },
+    {
+      id: "ann_2",
+      judul: "Pemberitahuan Pelayanan Diakonia & Kasih Jemaat",
+      deskripsi: "Bagi jemaat yang rindu mendukung pelayanan sosial dan diakonia bagi sesama yang membutuhkan, silakan menghubungi pengurus majelis gereja.",
+      tanggal: "Oktober 2026",
+      mediaType: "document",
+      mediaUrl: "",
+      fileName: "Tata-Tertib-Pelayanan.pdf",
+      active: true,
+      createdAt: 1793080000000
+    }
+  ],
   warta: {
     editionDate: "November 2026",
     subtitle: "Edisi Ibadah Raya & Perjamuan Kudus",
@@ -109,6 +134,11 @@ let APP_DB = {
 let currentZoom = 1;
 let currentRenunganFolderId = "root_2026";
 let currentCollageCanvas = null;
+let currentPengumumanSlideIndex = 0;
+let editingPengumumanId = null;
+let editingRenunganArticleId = null;
+let touchStartX = 0;
+let touchEndX = 0;
 
 // Day ordering helper
 const DAY_ORDER = { "Minggu": 1, "Senin": 2, "Selasa": 3, "Rabu": 4, "Kamis": 5, "Jumat": 6, "Sabtu": 7 };
@@ -228,6 +258,7 @@ function renderAll() {
   const vis = APP_DB.visibility || {
     warta: true,
     jadwalIbadah: true,
+    pengumuman: true,
     jadwalPersekutuan: true,
     dokumentasi: true,
     renungan: true,
@@ -236,11 +267,9 @@ function renderAll() {
 
   renderHeaderAndHero();
 
-  // 1. Warta Jemaat (Date Card & Sheet)
-  const wartaDateCard = document.getElementById("wartaDateCard");
-  const wartaSec = document.getElementById("wartaSection");
-  if (wartaDateCard) wartaDateCard.style.display = vis.warta !== false ? "" : "none";
-  if (wartaSec) wartaSec.style.display = vis.warta !== false ? "" : "none";
+  // 1. Warta Jemaat Card
+  const wartaCard = document.getElementById("wartaSectionCard") || document.getElementById("wartaSection");
+  if (wartaCard) wartaCard.style.display = vis.warta !== false ? "" : "none";
   if (vis.warta !== false) {
     renderDateCard();
     renderWartaImage();
@@ -253,25 +282,32 @@ function renderAll() {
     renderJadwalIbadah();
   }
 
-  // 3. Petunjuk Arah Google Maps
+  // 3. Pengumuman Gereja (Carousel / Slider)
+  const pengumumanSec = document.getElementById("pengumumanSectionCard");
+  if (pengumumanSec) pengumumanSec.style.display = vis.pengumuman !== false ? "" : "none";
+  if (vis.pengumuman !== false) {
+    renderPengumumanCarousel();
+  }
+
+  // 4. Petunjuk Arah Google Maps
   const mapsBtn = document.getElementById("btnGoogleMaps");
   if (mapsBtn) mapsBtn.style.display = vis.maps !== false ? "" : "none";
 
-  // 4. Jadwal Persekutuan Pekanan
+  // 5. Jadwal Persekutuan Pekanan
   const persekutuanSec = document.getElementById("persekutuanSectionCard");
   if (persekutuanSec) persekutuanSec.style.display = vis.jadwalPersekutuan !== false ? "" : "none";
   if (vis.jadwalPersekutuan !== false) {
     renderJadwalPersekutuan();
   }
 
-  // 5. Dokumentasi Kegiatan
+  // 6. Dokumentasi Kegiatan
   const docSec = document.getElementById("dokumentasiSectionCard");
   if (docSec) docSec.style.display = vis.dokumentasi !== false ? "" : "none";
   if (vis.dokumentasi !== false) {
     renderDokumentasi();
   }
 
-  // 6. Renungan Harian
+  // 7. Renungan Harian
   const renunganSec = document.getElementById("renunganSectionCard");
   if (renunganSec) renunganSec.style.display = vis.renungan !== false ? "" : "none";
   if (vis.renungan !== false) {
@@ -294,9 +330,11 @@ function renderHeaderAndHero() {
 function renderDateCard() {
   const dateTitle = document.getElementById("displayDateTitle");
   const subTitle = document.getElementById("displayDateTime");
+  const headerSubtitle = document.getElementById("wartaHeaderSubtitle");
 
   if (dateTitle) dateTitle.textContent = APP_DB.warta.editionDate || "November 2026";
   if (subTitle) subTitle.textContent = APP_DB.warta.subtitle || "Edisi Ibadah Raya & Perjamuan Kudus";
+  if (headerSubtitle) headerSubtitle.textContent = `Edisi ${APP_DB.warta.editionDate || 'November 2026'} • Sentuh untuk Membuka`;
 }
 
 function renderWartaImage() {
@@ -380,6 +418,213 @@ function renderJadwalIbadah() {
   });
 
   container.innerHTML = html;
+}
+
+// -------------------------------------------------------------
+// PENGUMUMAN GEREJA (CAROUSEL / SLIDER GESER)
+// -------------------------------------------------------------
+function renderPengumumanCarousel() {
+  const track = document.getElementById("pengumumanTrack");
+  const dotsContainer = document.getElementById("pengumumanDots");
+  const subHeader = document.getElementById("pengumumanHeaderSubtitle");
+  if (!track || !dotsContainer) return;
+
+  const list = (APP_DB.pengumuman || []).filter(item => item.active !== false);
+
+  if (subHeader) {
+    subHeader.textContent = list.length > 0 
+      ? `${list.length} Pengumuman Aktif • Geser untuk Melihat`
+      : "Belum Ada Pengumuman Baru";
+  }
+
+  if (!list.length) {
+    track.innerHTML = `
+      <div class="w-full flex-shrink-0 p-5 rounded-2xl bg-sky-cloud/50 border border-sky-soft text-center flex flex-col items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-3xl text-royal-navy/40">campaign</span>
+        <p class="font-serif text-xs font-bold text-royal-navy">Belum ada pengumuman kegiatan aktif</p>
+        <span class="text-[11px] text-royal-navy/60 font-sans">Pengumuman ibadah dan warta jemaat akan ditampilkan di sini.</span>
+      </div>
+    `;
+    dotsContainer.innerHTML = "";
+    track.style.transform = "translateX(0%)";
+    return;
+  }
+
+  // Ensure current slide is within bounds
+  if (currentPengumumanSlideIndex >= list.length) {
+    currentPengumumanSlideIndex = 0;
+  }
+
+  let slidesHtml = "";
+  let dotsHtml = "";
+
+  list.forEach((item, index) => {
+    let mediaHtml = "";
+    if (item.mediaType === "image" && item.mediaUrl) {
+      mediaHtml = `
+        <div class="relative w-full rounded-xl overflow-hidden border border-sky-soft shadow-inner bg-sky-cloud/30 cursor-pointer max-h-56 flex items-center justify-center my-2" onclick="openPengumumanLightbox('${item.id}')">
+          <img src="${item.mediaUrl}" alt="${item.judul}" class="w-full h-auto max-h-56 object-cover hover:scale-[1.01] transition-transform">
+          <div class="absolute bottom-2 right-2 bg-royal-navy/80 backdrop-blur-sm text-white text-[10px] font-serif px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">zoom_in</span> Perbesar
+          </div>
+        </div>
+      `;
+    } else if (item.mediaType === "video" && item.mediaUrl) {
+      mediaHtml = `
+        <div class="w-full rounded-xl overflow-hidden border border-sky-soft shadow-inner bg-black my-2">
+          <video controls playsinline class="w-full max-h-56 object-contain">
+            <source src="${item.mediaUrl}">
+            Browser tidak mendukung pemutar video.
+          </video>
+        </div>
+      `;
+    } else if (item.mediaType === "document") {
+      mediaHtml = `
+        <div class="w-full p-2.5 rounded-xl bg-white/90 border border-vintage-gold/40 shadow-xs flex items-center justify-between gap-2 my-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="font-serif text-xs font-bold text-royal-navy truncate">${item.fileName || 'Dokumen Pengumuman'}</span>
+              <span class="text-[10px] text-royal-navy/60 font-sans">Lampiran PDF / Dokumen Resmi</span>
+            </div>
+          </div>
+          ${item.mediaUrl ? `
+            <a href="${item.mediaUrl}" download="${item.fileName || 'dokumen-pengumuman.pdf'}" class="px-2.5 py-1.5 rounded-lg bg-royal-navy hover:bg-deep-blue text-white text-[10px] font-serif font-bold shrink-0 flex items-center gap-1 shadow-xs">
+              <span class="material-symbols-outlined text-[13px]">download</span> Unduh
+            </a>
+          ` : `
+            <span class="text-[10px] text-royal-navy/50 italic shrink-0">Tersedia di Sekretariat</span>
+          `}
+        </div>
+      `;
+    }
+
+    slidesHtml += `
+      <div class="w-full flex-shrink-0 p-4 rounded-2xl bg-gradient-to-b from-white via-sky-cloud/40 to-sky-soft/40 border border-sky-soft flex flex-col justify-between shadow-xs">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-antique-gold">campaign</span>
+              <span class="text-[10px] font-serif font-bold uppercase tracking-wider text-royal-navy/80">Pengumuman #${index + 1}</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-royal-navy border border-vintage-gold/50 shadow-2xs">
+              ${item.tanggal || 'Warta Jemaat'}
+            </span>
+          </div>
+
+          <h4 class="font-serif text-sm font-bold text-royal-navy tracking-wide leading-snug mb-1.5">
+            ${item.judul}
+          </h4>
+
+          ${mediaHtml}
+
+          <p class="text-xs text-royal-navy/80 leading-relaxed font-sans whitespace-pre-line mt-1">
+            ${item.deskripsi}
+          </p>
+        </div>
+
+        <div class="mt-3 pt-2 border-t border-sky-soft/60 flex items-center justify-between text-[10px] text-royal-navy/50 font-serif">
+          <span>GPdI Gosyen Kaloran</span>
+          <span>Slide ${index + 1} dari ${list.length}</span>
+        </div>
+      </div>
+    `;
+
+    const isActive = index === currentPengumumanSlideIndex;
+    dotsHtml += `
+      <button type="button" onclick="goToPengumumanSlide(${index})" aria-label="Slide ${index + 1}" class="transition-all duration-300 rounded-full ${isActive ? 'w-6 h-2 bg-royal-navy' : 'w-2 h-2 bg-sky-mid/60 hover:bg-sky-mid'}"></button>
+    `;
+  });
+
+  track.innerHTML = slidesHtml;
+  dotsContainer.innerHTML = dotsHtml;
+
+  updatePengumumanTrackPosition();
+  setupPengumumanSwipe();
+}
+
+function updatePengumumanTrackPosition() {
+  const track = document.getElementById("pengumumanTrack");
+  const dotsContainer = document.getElementById("pengumumanDots");
+  if (!track) return;
+
+  track.style.transform = `translateX(-${currentPengumumanSlideIndex * 100}%)`;
+
+  if (dotsContainer) {
+    const dots = dotsContainer.querySelectorAll("button");
+    dots.forEach((dot, idx) => {
+      if (idx === currentPengumumanSlideIndex) {
+        dot.className = "transition-all duration-300 rounded-full w-6 h-2 bg-royal-navy";
+      } else {
+        dot.className = "transition-all duration-300 rounded-full w-2 h-2 bg-sky-mid/60 hover:bg-sky-mid";
+      }
+    });
+  }
+}
+
+function nextPengumumanSlide() {
+  const list = (APP_DB.pengumuman || []).filter(item => item.active !== false);
+  if (list.length <= 1) return;
+  currentPengumumanSlideIndex = (currentPengumumanSlideIndex + 1) % list.length;
+  updatePengumumanTrackPosition();
+}
+
+function prevPengumumanSlide() {
+  const list = (APP_DB.pengumuman || []).filter(item => item.active !== false);
+  if (list.length <= 1) return;
+  currentPengumumanSlideIndex = (currentPengumumanSlideIndex - 1 + list.length) % list.length;
+  updatePengumumanTrackPosition();
+}
+
+function goToPengumumanSlide(index) {
+  const list = (APP_DB.pengumuman || []).filter(item => item.active !== false);
+  if (index >= 0 && index < list.length) {
+    currentPengumumanSlideIndex = index;
+    updatePengumumanTrackPosition();
+  }
+}
+
+function setupPengumumanSwipe() {
+  const wrapper = document.getElementById("pengumumanCarouselWrapper");
+  if (!wrapper || wrapper.dataset.swipeInitialized) return;
+  wrapper.dataset.swipeInitialized = "true";
+
+  wrapper.addEventListener("touchstart", (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  wrapper.addEventListener("touchend", (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handlePengumumanSwipeGesture();
+  }, { passive: true });
+}
+
+function handlePengumumanSwipeGesture() {
+  const diff = touchEndX - touchStartX;
+  if (Math.abs(diff) > 40) {
+    if (diff < 0) {
+      nextPengumumanSlide();
+    } else {
+      prevPengumumanSlide();
+    }
+  }
+}
+
+function openPengumumanLightbox(id) {
+  const item = (APP_DB.pengumuman || []).find(p => p.id === id);
+  if (item && item.mediaUrl) {
+    const lightbox = document.getElementById("lightboxModal");
+    const img = document.getElementById("lightboxImage");
+    if (lightbox && img) {
+      img.src = item.mediaUrl;
+      lightbox.classList.remove("hidden");
+      lightbox.classList.add("flex");
+      currentZoom = 1;
+      applyZoom();
+    }
+  }
 }
 
 // Render Jadwal Persekutuan Pekanan
@@ -744,9 +989,11 @@ function populateAdminDashboard() {
   document.getElementById("adminWartaSubtitleInput").value = APP_DB.warta.subtitle || "Edisi Ibadah Raya & Perjamuan Kudus";
 
   renderAdminJadwalTable();
+  renderAdminPengumumanList();
   renderAdminPersekutuanList();
   renderAdminDocFolders();
   renderAdminRenunganSelects();
+  renderAdminRenunganArticlesList();
   renderAdminVisibilityList();
 
   document.getElementById("adminCloudUrlInput").value = (APP_DB.cloudConfig && APP_DB.cloudConfig.apiUrl) || "";
@@ -1028,6 +1275,218 @@ async function deleteJadwalIbadah(id) {
 }
 
 // -------------------------------------------------------------
+// PENGUMUMAN ADMIN CRUD (EDIT, UNGGAH MEDIA, HAPUS PERMANEN)
+// -------------------------------------------------------------
+function handlePengumumanMediaTypeChange() {
+  const type = document.getElementById("formPengumumanMediaType").value;
+  const wrapper = document.getElementById("pengumumanFileInputWrapper");
+  const label = document.getElementById("pengumumanFileInputLabel");
+  const input = document.getElementById("formPengumumanMediaFile");
+  if (!wrapper || !input) return;
+
+  if (type === "none") {
+    wrapper.classList.add("hidden");
+  } else if (type === "image") {
+    wrapper.classList.remove("hidden");
+    label.textContent = "Pilih Gambar (PNG/JPG):";
+    input.accept = "image/*";
+  } else if (type === "video") {
+    wrapper.classList.remove("hidden");
+    label.textContent = "Pilih Video (MP4/WebM):";
+    input.accept = "video/*";
+  } else if (type === "document") {
+    wrapper.classList.remove("hidden");
+    label.textContent = "Pilih Dokumen (PDF/DOC):";
+    input.accept = ".pdf,.doc,.docx,application/pdf";
+  }
+}
+
+function renderAdminPengumumanList() {
+  const container = document.getElementById("adminPengumumanList");
+  if (!container) return;
+
+  const list = APP_DB.pengumuman || [];
+  if (!list.length) {
+    container.innerHTML = `<span class="text-xs text-royal-navy/50 italic py-2">Belum ada pengumuman kegiatan yang dibuat.</span>`;
+    return;
+  }
+
+  let html = "";
+  list.forEach((item, index) => {
+    const isItemActive = item.active !== false;
+    let typeBadge = "";
+    if (item.mediaType === "image") {
+      typeBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800">Foto/Gambar</span>`;
+    } else if (item.mediaType === "video") {
+      typeBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-800">Video</span>`;
+    } else if (item.mediaType === "document") {
+      typeBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-800">Dokumen PDF</span>`;
+    } else {
+      typeBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-700">Teks</span>`;
+    }
+
+    html += `
+      <div class="p-3 rounded-xl bg-sky-cloud/30 border border-sky-soft flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+        <div class="flex flex-col gap-0.5 min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <strong class="font-serif text-royal-navy text-[12px]">${item.judul}</strong>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${isItemActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'}">
+              ${isItemActive ? 'Aktif' : 'Nonaktif'}
+            </span>
+            ${typeBadge}
+          </div>
+          <span class="text-[10px] text-royal-navy/60 font-sans">${item.tanggal || 'Warta Jemaat'} • ${(item.deskripsi || '').slice(0, 75)}...</span>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+          <button type="button" onclick="togglePengumumanActive('${item.id}')" title="${isItemActive ? 'Nonaktifkan' : 'Aktifkan'}" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition active:scale-95 ${isItemActive ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-300'}">
+            ${isItemActive ? 'Nonaktifkan' : 'Aktifkan'}
+          </button>
+          <button type="button" onclick="editPengumuman('${item.id}')" class="px-2 py-1 rounded-lg bg-sky-soft hover:bg-sky-mid/60 text-royal-navy font-semibold text-[10px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">edit</span> Edit
+          </button>
+          <button type="button" onclick="deletePengumuman('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Permanen">
+            <span class="material-symbols-outlined text-[17px]">delete</span>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+async function submitPengumuman() {
+  const judul = document.getElementById("formPengumumanJudul").value.trim();
+  const tanggal = document.getElementById("formPengumumanTanggal").value.trim();
+  const deskripsi = document.getElementById("formPengumumanDeskripsi").value.trim();
+  const mediaType = document.getElementById("formPengumumanMediaType").value;
+  const fileInput = document.getElementById("formPengumumanMediaFile");
+
+  if (!judul || !deskripsi) {
+    alert("Harap isi judul dan deskripsi pengumuman");
+    return;
+  }
+
+  if (fileInput.files && fileInput.files[0]) {
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      await finalizeSubmitPengumuman(judul, tanggal, deskripsi, mediaType, e.target.result, file.name);
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  // Jika sedang edit dan tidak ganti file, pertahankan media sebelumnya
+  let existingMediaUrl = "";
+  let existingFileName = "";
+  if (editingPengumumanId) {
+    const existing = (APP_DB.pengumuman || []).find(p => p.id === editingPengumumanId);
+    if (existing && existing.mediaType === mediaType) {
+      existingMediaUrl = existing.mediaUrl || "";
+      existingFileName = existing.fileName || "";
+    }
+  }
+
+  await finalizeSubmitPengumuman(judul, tanggal, deskripsi, mediaType, existingMediaUrl, existingFileName);
+}
+
+async function finalizeSubmitPengumuman(judul, tanggal, deskripsi, mediaType, mediaUrl, fileName) {
+  if (!APP_DB.pengumuman) APP_DB.pengumuman = [];
+
+  if (editingPengumumanId) {
+    const item = APP_DB.pengumuman.find(p => p.id === editingPengumumanId);
+    if (item) {
+      item.judul = judul;
+      item.tanggal = tanggal || "Warta Jemaat";
+      item.deskripsi = deskripsi;
+      item.mediaType = mediaType;
+      if (mediaUrl || mediaType === "none") item.mediaUrl = mediaUrl;
+      if (fileName) item.fileName = fileName;
+      showToast("Pengumuman berhasil diperbarui! ✓");
+    }
+    cancelEditPengumuman();
+  } else {
+    APP_DB.pengumuman.unshift({
+      id: "ann_" + Date.now(),
+      judul,
+      tanggal: tanggal || "Warta Jemaat",
+      deskripsi,
+      mediaType,
+      mediaUrl,
+      fileName,
+      active: true,
+      createdAt: Date.now()
+    });
+    showToast("Pengumuman baru berhasil diterbitkan! ✓");
+    resetPengumumanForm();
+  }
+
+  await saveDatabase();
+  renderAdminPengumumanList();
+  renderPengumumanCarousel();
+}
+
+function editPengumuman(id) {
+  const item = (APP_DB.pengumuman || []).find(p => p.id === id);
+  if (!item) return;
+
+  editingPengumumanId = id;
+  document.getElementById("formPengumumanJudul").value = item.judul || "";
+  document.getElementById("formPengumumanTanggal").value = item.tanggal || "";
+  document.getElementById("formPengumumanDeskripsi").value = item.deskripsi || "";
+  document.getElementById("formPengumumanMediaType").value = item.mediaType || "none";
+  handlePengumumanMediaTypeChange();
+
+  document.getElementById("pengumumanFormTitle").textContent = "1. Edit Pengumuman";
+  document.getElementById("btnSubmitPengumuman").textContent = "Perbarui Pengumuman";
+  document.getElementById("btnCancelEditPengumuman").classList.remove("hidden");
+
+  // Scroll to form
+  const tab = document.getElementById("tabContent_pengumuman");
+  if (tab) tab.scrollTop = 0;
+}
+
+function cancelEditPengumuman() {
+  editingPengumumanId = null;
+  resetPengumumanForm();
+  document.getElementById("pengumumanFormTitle").textContent = "1. Tambah Pengumuman Baru (Carousel)";
+  document.getElementById("btnSubmitPengumuman").textContent = "Terbitkan Pengumuman";
+  document.getElementById("btnCancelEditPengumuman").classList.add("hidden");
+}
+
+function resetPengumumanForm() {
+  document.getElementById("formPengumumanJudul").value = "";
+  document.getElementById("formPengumumanTanggal").value = "";
+  document.getElementById("formPengumumanDeskripsi").value = "";
+  document.getElementById("formPengumumanMediaType").value = "none";
+  document.getElementById("formPengumumanMediaFile").value = "";
+  handlePengumumanMediaTypeChange();
+}
+
+async function togglePengumumanActive(id) {
+  const item = (APP_DB.pengumuman || []).find(p => p.id === id);
+  if (item) {
+    item.active = item.active === false ? true : false;
+    await saveDatabase();
+    renderAdminPengumumanList();
+    renderPengumumanCarousel();
+    showToast(`Status pengumuman diubah jadi ${item.active ? 'Aktif' : 'Nonaktif'}!`);
+  }
+}
+
+async function deletePengumuman(id) {
+  if (confirm("Hapus pengumuman ini secara permanen dari database?")) {
+    APP_DB.pengumuman = (APP_DB.pengumuman || []).filter(p => p.id !== id);
+    if (editingPengumumanId === id) cancelEditPengumuman();
+    await saveDatabase();
+    renderAdminPengumumanList();
+    renderPengumumanCarousel();
+    showToast("Pengumuman berhasil dihapus permanen dari database! ✓");
+  }
+}
+
+// -------------------------------------------------------------
 // PERSEKUTUAN PEKANAN ADMIN CRUD (DENGAN TOMBOL AKTIF / NONAKTIF)
 // -------------------------------------------------------------
 function renderAdminPersekutuanList() {
@@ -1246,42 +1705,140 @@ async function addRenunganArticle() {
     return;
   }
 
-  let imageUrl = "";
   if (imgInput.files && imgInput.files[0]) {
     const reader = new FileReader();
     reader.onload = async (e) => {
-      imageUrl = e.target.result;
-      saveNewArticle(folderId, title, ayat, konten, imageUrl);
+      await saveOrUpdateArticle(folderId, title, ayat, konten, e.target.result);
     };
     reader.readAsDataURL(imgInput.files[0]);
     return;
   }
 
-  await saveNewArticle(folderId, title, ayat, konten, "");
+  // Jika edit dan tidak ada gambar baru yang dipilih, pertahankan gambar lama
+  let existingImg = "";
+  if (editingRenunganArticleId) {
+    const existing = (APP_DB.renungan.articles || []).find(a => a.id === editingRenunganArticleId);
+    if (existing) existingImg = existing.imageUrl || "";
+  }
+
+  await saveOrUpdateArticle(folderId, title, ayat, konten, existingImg);
 }
 
-async function saveNewArticle(folderId, title, ayat, konten, imageUrl) {
+async function saveOrUpdateArticle(folderId, title, ayat, konten, imageUrl) {
   if (!APP_DB.renungan.articles) APP_DB.renungan.articles = [];
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-
-  APP_DB.renungan.articles.unshift({
-    id: "art_" + Date.now(),
-    folderId,
-    title,
-    date: dateStr,
-    ayat,
-    konten,
-    imageUrl
-  });
+  if (editingRenunganArticleId) {
+    const art = APP_DB.renungan.articles.find(a => a.id === editingRenunganArticleId);
+    if (art) {
+      art.folderId = folderId;
+      art.title = title;
+      art.ayat = ayat;
+      art.konten = konten;
+      if (imageUrl !== undefined) art.imageUrl = imageUrl;
+      showToast("Renungan berhasil diperbarui! ✓");
+    }
+    cancelEditRenunganArticle();
+  } else {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    APP_DB.renungan.articles.unshift({
+      id: "art_" + Date.now(),
+      folderId,
+      title,
+      date: dateStr,
+      ayat,
+      konten,
+      imageUrl
+    });
+    showToast("Renungan harian berhasil diterbitkan! ✓");
+    cancelEditRenunganArticle();
+  }
 
   await saveDatabase();
+  renderAdminRenunganArticlesList();
+  renderRenungan();
+}
+
+function renderAdminRenunganArticlesList() {
+  const container = document.getElementById("adminRenunganArticlesList");
+  if (!container) return;
+
+  const articles = (APP_DB.renungan && APP_DB.renungan.articles) || [];
+  if (!articles.length) {
+    container.innerHTML = `<span class="text-xs text-royal-navy/50 italic py-2">Belum ada artikel renungan harian.</span>`;
+    return;
+  }
+
+  let html = "";
+  articles.forEach(art => {
+    const folder = findFolderById(art.folderId);
+    const folderName = folder ? folder.name : "Tanpa Folder";
+
+    html += `
+      <div class="p-2.5 rounded-xl bg-sky-cloud/30 border border-sky-soft flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <strong class="font-serif text-royal-navy text-[12px]">${art.title}</strong>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-soft text-royal-navy">📁 ${folderName}</span>
+          </div>
+          <span class="text-[10px] text-royal-navy/60 font-sans">${art.date} ${art.ayat ? `• <em>(${art.ayat})</em>` : ''} • ${(art.konten || '').slice(0, 60)}...</span>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+          <button type="button" onclick="editRenunganArticle('${art.id}')" class="px-2 py-1 rounded-lg bg-sky-soft hover:bg-sky-mid/60 text-royal-navy font-semibold text-[10px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">edit</span> Edit
+          </button>
+          <button type="button" onclick="deleteRenunganArticle('${art.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus Permanen">
+            <span class="material-symbols-outlined text-[17px]">delete</span>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function editRenunganArticle(id) {
+  const art = (APP_DB.renungan.articles || []).find(a => a.id === id);
+  if (!art) return;
+
+  editingRenunganArticleId = id;
+  const folderSelect = document.getElementById("adminRenunganArticleFolderSelect");
+  if (folderSelect && art.folderId) folderSelect.value = art.folderId;
+
+  document.getElementById("formRenunganTitle").value = art.title || "";
+  document.getElementById("formRenunganAyat").value = art.ayat || "";
+  document.getElementById("formRenunganContent").value = art.konten || "";
+
+  document.getElementById("renunganFormTitle").textContent = "2. Edit Renungan Harian";
+  document.getElementById("btnSubmitRenungan").textContent = "Perbarui Renungan";
+  document.getElementById("btnCancelEditRenungan").classList.remove("hidden");
+
+  // Scroll to form
+  const formEl = document.getElementById("renunganFormTitle");
+  if (formEl) formEl.scrollIntoView({ behavior: "smooth" });
+}
+
+function cancelEditRenunganArticle() {
+  editingRenunganArticleId = null;
   document.getElementById("formRenunganTitle").value = "";
   document.getElementById("formRenunganAyat").value = "";
   document.getElementById("formRenunganContent").value = "";
   document.getElementById("formRenunganImageInput").value = "";
-  showToast("Renungan harian berhasil diterbitkan! ✓");
+  document.getElementById("renunganFormTitle").textContent = "2. Tulis & Unggah Renungan Harian";
+  document.getElementById("btnSubmitRenungan").textContent = "Terbitkan Renungan";
+  document.getElementById("btnCancelEditRenungan").classList.add("hidden");
+}
+
+async function deleteRenunganArticle(id) {
+  if (confirm("Hapus artikel renungan ini secara permanen dari database?")) {
+    APP_DB.renungan.articles = (APP_DB.renungan.articles || []).filter(a => a.id !== id);
+    if (editingRenunganArticleId === id) cancelEditRenunganArticle();
+    await saveDatabase();
+    renderAdminRenunganArticlesList();
+    renderRenungan();
+    showToast("Renungan berhasil dihapus permanen dari database! ✓");
+  }
 }
 
 // -------------------------------------------------------------
@@ -1359,6 +1916,7 @@ function showToast(msg) {
 const VISIBILITY_CONFIG = [
   { key: "warta", label: "Lembar Warta Jemaat", desc: "Poster warta mingguan, tanggal edisi warta, layar penuh & tombol unduh", icon: "auto_stories" },
   { key: "jadwalIbadah", label: "Tabel Jadwal Ibadah", desc: "Tabel jadwal ibadah raya hari Minggu s/d Sabtu beserta waktu pelaksanaan", icon: "church" },
+  { key: "pengumuman", label: "Pengumuman Gereja (Carousel)", desc: "Warta geser info kegiatan, banner visual & dokumen jemaat", icon: "campaign" },
   { key: "jadwalPersekutuan", label: "Jadwal Persekutuan Pekanan", desc: "Jadwal kegiatan persekutuan mezbah keluarga, ibadah wanita, dsb.", icon: "event_note" },
   { key: "dokumentasi", label: "Dokumentasi Kegiatan", desc: "Galeri foto kegiatan ibadah & dokumentasi pelayanan jemaat", icon: "photo_library" },
   { key: "renungan", label: "Renungan Harian", desc: "Santapan rohani firman Tuhan beserta folder berjenjang", icon: "menu_book" },
@@ -1373,6 +1931,7 @@ function renderAdminVisibilityList() {
     APP_DB.visibility = {
       warta: true,
       jadwalIbadah: true,
+      pengumuman: true,
       jadwalPersekutuan: true,
       dokumentasi: true,
       renungan: true,

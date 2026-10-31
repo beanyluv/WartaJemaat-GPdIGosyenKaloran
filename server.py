@@ -30,11 +30,36 @@ DEFAULT_DATABASE = {
     "visibility": {
         "warta": True,
         "jadwalIbadah": True,
+        "pengumuman": True,
         "jadwalPersekutuan": True,
         "dokumentasi": True,
         "renungan": True,
         "maps": True
     },
+    "pengumuman": [
+        {
+            "id": "ann_1",
+            "judul": "Ibadah Syukur & Perjamuan Kudus Awal Bulan",
+            "deskripsi": "Mengundang seluruh jemaat GPdI Gosyen Kaloran untuk hadir bersekutu bersama dalam Ibadah Raya & Perjamuan Kudus. Mari mempersiapkan hati untuk menerima berkat & kekuatan baru di hadirat Tuhan.",
+            "tanggal": "1 November 2026",
+            "mediaType": "image",
+            "mediaUrl": "./assets/warta-sample.png",
+            "fileName": "warta-november.png",
+            "active": True,
+            "createdAt": 1793088000000
+        },
+        {
+            "id": "ann_2",
+            "judul": "Pemberitahuan Pelayanan Diakonia & Kasih Jemaat",
+            "deskripsi": "Bagi jemaat yang rindu mendukung pelayanan sosial dan diakonia bagi sesama yang membutuhkan, silakan menghubungi pengurus majelis gereja.",
+            "tanggal": "Oktober 2026",
+            "mediaType": "document",
+            "mediaUrl": "",
+            "fileName": "Tata-Tertib-Pelayanan.pdf",
+            "active": True,
+            "createdAt": 1793080000000
+        }
+    ],
     "warta": {
         "editionDate": "November 2026",
         "subtitle": "Edisi Ibadah Raya & Perjamuan Kudus",

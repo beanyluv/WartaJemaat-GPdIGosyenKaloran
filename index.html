@@ -106,75 +106,78 @@
         </div>
       </div>
 
-      <!-- Simplified Date Card (Gambar 3: Cukup Tanggal Warta Jemaat, misal November 2026) -->
-      <div id="wartaDateCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo p-4 relative overflow-hidden">
-        <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-sky-soft/40 blur-xl pointer-events-none"></div>
-        <div class="flex flex-col items-center text-center">
-          <span class="font-serif text-[11px] font-bold tracking-[0.25em] text-antique-gold uppercase">Warta Jemaat</span>
-          <div class="w-12 h-px bg-vintage-gold/50 my-1"></div>
-          <h2 id="displayDateTitle" class="font-serif text-xl font-bold text-royal-navy tracking-wide">November 2026</h2>
-          <p id="displayDateTime" class="text-xs font-classic italic text-royal-navy/70 mt-0.5">Edisi Ibadah Raya & Perjamuan Kudus</p>
-        </div>
-      </div>
-
-      <!-- Feature Card: Lembar Warta Jemaat (Gambar 4 & Gambar 7: Tombol Sentuh Statis) -->
-      <section class="w-full rounded-3xl bg-white/85 backdrop-blur-md border border-white shadow-vintage-frame p-4 flex flex-col gap-3.5 relative" id="wartaSection">
-        <!-- Header Label -->
-        <div class="flex items-center justify-between px-1">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-antique-gold text-[20px]">auto_stories</span>
+      <!-- 1. LEMBAR WARTA JEMAAT (Accordion Minimalis) -->
+      <section id="wartaSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
+        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press" onclick="toggleAccordion('wartaAccordion')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
+              <span class="material-symbols-outlined text-[22px] text-royal-navy">auto_stories</span>
+            </div>
             <div class="flex flex-col">
-              <h3 class="font-serif text-sm font-bold text-royal-navy tracking-wide uppercase">Lembar Warta Jemaat</h3>
-              <span class="text-[10px] text-royal-navy/60 font-sans" id="updateTimestamp">Edisi: November 2026</span>
+              <h3 class="font-serif text-xs font-bold text-royal-navy tracking-wide uppercase">Lembar Warta Jemaat</h3>
+              <span class="text-[11px] text-royal-navy/60 font-sans" id="wartaHeaderSubtitle">Edisi November 2026 • Sentuh untuk Membuka</span>
             </div>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full bg-sky-soft/70 text-royal-navy text-[10px] font-serif font-bold tracking-wider border border-white/80 shadow-sm uppercase">Terbaru</span>
-        </div>
+          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="wartaAccordionArrow">expand_more</span>
+        </button>
 
-        <!-- Warta Image Frame with Classical Curved Corners -->
-        <div id="wartaImageFrameContainer" class="relative w-full rounded-2xl p-2 bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 shadow-inner group">
-          <!-- Scrollable image viewer -->
-          <div class="relative aspect-[3/4] max-h-[380px] w-full overflow-y-auto rounded-xl bg-white cursor-pointer shadow-md" onclick="openLightbox()" title="Klik untuk membuka layar penuh">
-            <img id="wartaImagePreview" src="./assets/warta-sample.png" alt="Warta Jemaat GPdI Gosyen Kaloran" class="w-full object-top object-cover transition-transform duration-500 group-hover:scale-[1.01]">
+        <!-- Warta Accordion Body (Initially Collapsed) -->
+        <div class="p-4 flex flex-col gap-3.5 border-t border-sky-soft/60 hidden" id="wartaAccordion">
+          <!-- Simplified Date Card Inside Warta -->
+          <div id="wartaDateCard" class="w-full rounded-xl bg-sky-cloud/60 border border-sky-soft p-3 relative overflow-hidden">
+            <div class="flex flex-col items-center text-center">
+              <span class="font-serif text-[10px] font-bold tracking-[0.25em] text-antique-gold uppercase">Warta Jemaat</span>
+              <div class="w-10 h-px bg-vintage-gold/50 my-1"></div>
+              <h2 id="displayDateTitle" class="font-serif text-lg font-bold text-royal-navy tracking-wide">November 2026</h2>
+              <p id="displayDateTime" class="text-xs font-classic italic text-royal-navy/70 mt-0.5">Edisi Ibadah Raya & Perjamuan Kudus</p>
+            </div>
           </div>
 
-          <!-- Gambar 7: Sentuh untuk Perbesar Statis (Di luar div overflow sehingga tidak ikut bergeser saat warta digeser!) -->
-          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md border border-vintage-gold/50 text-royal-navy text-[11px] font-serif font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg pointer-events-none z-20">
-            <span class="material-symbols-outlined text-[15px] text-antique-gold">zoom_in</span>
-            <span>Sentuh untuk Perbesar</span>
-          </div>
-        </div>
+          <!-- Warta Image Frame with Classical Curved Corners -->
+          <div id="wartaImageFrameContainer" class="relative w-full rounded-2xl p-2 bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 shadow-inner group">
+            <!-- Scrollable image viewer -->
+            <div class="relative aspect-[3/4] max-h-[380px] w-full overflow-y-auto rounded-xl bg-white cursor-pointer shadow-md" onclick="openLightbox()" title="Klik untuk membuka layar penuh">
+              <img id="wartaImagePreview" src="./assets/warta-sample.png" alt="Warta Jemaat GPdI Gosyen Kaloran" class="w-full object-top object-cover transition-transform duration-500 group-hover:scale-[1.01]">
+            </div>
 
-        <!-- Expired Notice State (> 30 Days Auto-Cleanup) -->
-        <div id="wartaExpiredNotice" class="hidden w-full py-10 px-4 rounded-2xl bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 flex flex-col items-center justify-center text-center gap-2.5 shadow-inner">
-          <div class="w-12 h-12 rounded-full bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[24px]">history_toggle_off</span>
+            <!-- Sentuh untuk Perbesar Statis -->
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur-md border border-vintage-gold/50 text-royal-navy text-[11px] font-serif font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg pointer-events-none z-20">
+              <span class="material-symbols-outlined text-[15px] text-antique-gold">zoom_in</span>
+              <span>Sentuh untuk Perbesar</span>
+            </div>
           </div>
-          <h4 class="font-serif text-sm font-bold text-royal-navy">Lembar Warta Telah Kedaluwarsa</h4>
-          <p class="text-[11px] text-royal-navy/70 max-w-xs font-sans leading-relaxed">
-            Lembar warta jemaat sebelumnya telah berusia lebih dari 30 hari dan otomatis dibersihkan. Silakan pengelola mengunggah edisi warta terbaru.
-          </p>
-          <button type="button" onclick="openAdminModal()" class="mt-1 py-1.5 px-3 rounded-xl bg-royal-navy text-white text-[11px] font-serif font-semibold shadow-xs">
-            Unggah Warta Baru (Pengelola)
-          </button>
-        </div>
 
-        <!-- Interaction Buttons (Layar Penuh & Unduh) -->
-        <div class="grid grid-cols-2 gap-2.5 pt-0.5 font-serif">
-          <button type="button" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-semibold shadow-sm transition active:scale-95 btn-press" onclick="openLightbox()">
-            <span class="material-symbols-outlined text-[17px] text-vintage-gold">fullscreen</span>
-            <span>Layar Penuh</span>
-          </button>
-          <a id="btnDownloadWarta" href="./assets/warta-sample.png" download="Warta-Jemaat-GPdI.png" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-sky-cloud border border-vintage-gold/50 text-royal-navy text-xs font-semibold shadow-sm transition active:scale-95 btn-press">
-            <span class="material-symbols-outlined text-[17px] text-antique-gold">download</span>
-            <span>Unduh Warta</span>
-          </a>
+          <!-- Expired Notice State (> 30 Days Auto-Cleanup) -->
+          <div id="wartaExpiredNotice" class="hidden w-full py-10 px-4 rounded-2xl bg-gradient-to-b from-sky-cloud to-sky-soft/80 border border-vintage-gold/30 flex flex-col items-center justify-center text-center gap-2.5 shadow-inner">
+            <div class="w-12 h-12 rounded-full bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[24px]">history_toggle_off</span>
+            </div>
+            <h4 class="font-serif text-sm font-bold text-royal-navy">Lembar Warta Telah Kedaluwarsa</h4>
+            <p class="text-[11px] text-royal-navy/70 max-w-xs font-sans leading-relaxed">
+              Lembar warta jemaat sebelumnya telah berusia lebih dari 30 hari dan otomatis dibersihkan. Silakan pengelola mengunggah edisi warta terbaru.
+            </p>
+            <button type="button" onclick="openAdminModal()" class="mt-1 py-1.5 px-3 rounded-xl bg-royal-navy text-white text-[11px] font-serif font-semibold shadow-xs">
+              Unggah Warta Baru (Pengelola)
+            </button>
+          </div>
+
+          <!-- Interaction Buttons (Layar Penuh & Unduh) -->
+          <div class="grid grid-cols-2 gap-2.5 pt-0.5 font-serif">
+            <button type="button" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-semibold shadow-sm transition active:scale-95 btn-press" onclick="openLightbox()">
+              <span class="material-symbols-outlined text-[17px] text-vintage-gold">fullscreen</span>
+              <span>Layar Penuh</span>
+            </button>
+            <a id="btnDownloadWarta" href="./assets/warta-sample.png" download="Warta-Jemaat-GPdI.png" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-sky-cloud border border-vintage-gold/50 text-royal-navy text-xs font-semibold shadow-sm transition active:scale-95 btn-press">
+              <span class="material-symbols-outlined text-[17px] text-antique-gold">download</span>
+              <span>Unduh Warta</span>
+            </a>
+          </div>
         </div>
       </section>
 
-      <!-- Gambar 2: JADWAL IBADAH (Tabel Urut Dari Hari Minggu, Lalu Jam) -->
+      <!-- 2. JADWAL IBADAH (Tabel Urut Dari Hari Minggu, Lalu Jam) -->
       <section id="jadwalIbadahSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
-        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press border-b border-sky-soft/60" onclick="toggleAccordion('jadwalIbadahAccordion')">
+        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press" onclick="toggleAccordion('jadwalIbadahAccordion')">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
               <span class="material-symbols-outlined text-[22px] text-royal-navy">church</span>
@@ -187,8 +190,8 @@
           <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="jadwalIbadahAccordionArrow">expand_more</span>
         </button>
 
-        <!-- Tabel Jadwal Ibadah -->
-        <div class="p-3" id="jadwalIbadahAccordion">
+        <!-- Tabel Jadwal Ibadah (Body Accordion - Initially Collapsed) -->
+        <div class="p-3 border-t border-sky-soft/60 hidden" id="jadwalIbadahAccordion">
           <div class="overflow-x-auto rounded-xl border border-sky-soft/80 bg-white/70 shadow-xs">
             <table class="w-full text-left border-collapse">
               <thead>
@@ -206,37 +209,68 @@
         </div>
       </section>
 
-      <!-- Petunjuk Arah & Peta Gereja -->
-      <a id="btnGoogleMaps" href="https://maps.app.goo.gl/CNYqT17tYnc58aD1A" target="_blank" rel="noopener noreferrer" class="w-full p-3.5 rounded-2xl bg-white/80 backdrop-blur-md hover:bg-white border border-white/90 flex items-center justify-between shadow-rococo transition active:scale-[0.99] btn-press">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
-            <span class="material-symbols-outlined text-[22px] text-royal-navy">location_on</span>
+      <!-- 3. PENGUMUMAN GEREJA (Carousel / Slider Geser) -->
+      <section id="pengumumanSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
+        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press" onclick="toggleAccordion('pengumumanAccordion')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
+              <span class="material-symbols-outlined text-[22px] text-royal-navy">campaign</span>
+            </div>
+            <div class="flex flex-col">
+              <h3 class="font-serif text-xs font-bold text-royal-navy tracking-wide uppercase">Pengumuman Gereja</h3>
+              <span class="text-[11px] text-royal-navy/60 font-sans" id="pengumumanHeaderSubtitle">Warta Kegiatan, Berita Jemaat & Informasi Terkini</span>
+            </div>
           </div>
-          <div class="flex flex-col text-left">
-            <span class="font-serif text-xs font-bold text-royal-navy tracking-wide">Petunjuk Arah & Lokasi Gereja</span>
-            <span class="text-[11px] text-royal-navy/60 font-sans">Navigasi Google Maps ke Gedung GPdI Gosyen</span>
-          </div>
-        </div>
-        <span class="material-symbols-outlined text-royal-navy/40 text-[18px]">directions</span>
-      </a>
+          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="pengumumanAccordionArrow">expand_more</span>
+        </button>
 
-      <!-- Kartu Jadwal Persekutuan Pekanan -->
-      <section id="persekutuanSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo p-4 flex flex-col gap-3">
-        <div class="flex items-center justify-between border-b border-sky-mid/30 pb-2.5">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-antique-gold text-[19px]">event_note</span>
-            <h3 class="font-serif text-xs font-bold text-royal-navy uppercase tracking-wider">Jadwal Persekutuan Pekanan</h3>
+        <!-- Pengumuman Carousel Body (Initially Collapsed) -->
+        <div class="p-3 border-t border-sky-soft/60 hidden" id="pengumumanAccordion">
+          <div id="pengumumanCarouselWrapper" class="relative w-full overflow-hidden rounded-2xl group select-none">
+            <!-- Carousel Slides Track -->
+            <div id="pengumumanTrack" class="flex transition-transform duration-500 ease-out" style="transform: translateX(0%);">
+              <!-- Diisi secara dinamis dari database -->
+            </div>
+            <!-- Arrow Controls -->
+            <button type="button" onclick="prevPengumumanSlide()" class="absolute left-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-md text-royal-navy flex items-center justify-center hover:bg-white active:scale-95 transition z-10" aria-label="Sebelumnya">
+              <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+            </button>
+            <button type="button" onclick="nextPengumumanSlide()" class="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 shadow-md text-royal-navy flex items-center justify-center hover:bg-white active:scale-95 transition z-10" aria-label="Selanjutnya">
+              <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+            </button>
+            <!-- Indicator Dots -->
+            <div id="pengumumanDots" class="flex items-center justify-center gap-1.5 pt-2.5 pb-0.5">
+              <!-- Diisi secara dinamis -->
+            </div>
           </div>
-          <span class="text-[9px] font-serif font-bold text-royal-navy/60 bg-sky-soft/60 px-2 py-0.5 rounded-full uppercase">Pekan Berjalan</span>
-        </div>
-        <div id="jadwalPersekutuanList" class="flex flex-col gap-2 font-sans">
-          <!-- Diisi secara dinamis dari database -->
         </div>
       </section>
 
-      <!-- MENU DOKUMENTASI KEGIATAN -->
+      <!-- 4. KARTU JADWAL PERSEKUTUAN PEKANAN -->
+      <section id="persekutuanSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
+        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press" onclick="toggleAccordion('persekutuanAccordion')">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
+              <span class="material-symbols-outlined text-[22px] text-royal-navy">event_note</span>
+            </div>
+            <div class="flex flex-col">
+              <h3 class="font-serif text-xs font-bold text-royal-navy tracking-wide uppercase">Jadwal Persekutuan Pekanan</h3>
+              <span class="text-[11px] text-royal-navy/60 font-sans">Mezbah Keluarga, Doa & Persekutuan Kategorial</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="persekutuanAccordionArrow">expand_more</span>
+        </button>
+
+        <div class="p-3 border-t border-sky-soft/60 hidden" id="persekutuanAccordion">
+          <div id="jadwalPersekutuanList" class="flex flex-col gap-2 font-sans">
+            <!-- Diisi secara dinamis dari database -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. MENU DOKUMENTASI KEGIATAN -->
       <section id="dokumentasiSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
-        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press border-b border-sky-soft/60" onclick="toggleAccordion('dokumentasiSection')">
+        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press" onclick="toggleAccordion('dokumentasiAccordion')">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
               <span class="material-symbols-outlined text-[22px] text-royal-navy">photo_library</span>
@@ -246,10 +280,10 @@
               <span class="text-[11px] text-royal-navy/60 font-sans">Galeri Foto Ibadah & Pelayanan Jemaat</span>
             </div>
           </div>
-          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="dokumentasiSectionArrow">expand_more</span>
+          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="dokumentasiAccordionArrow">expand_more</span>
         </button>
 
-        <div class="p-3.5 flex flex-col gap-3" id="dokumentasiSection">
+        <div class="p-3.5 border-t border-sky-soft/60 hidden flex flex-col gap-3" id="dokumentasiAccordion">
           <!-- Folder Pills -->
           <div id="docFolderTabs" class="flex items-center gap-1.5 overflow-x-auto pb-1">
             <!-- Diisi dinamis -->
@@ -261,9 +295,9 @@
         </div>
       </section>
 
-      <!-- MENU RENUNGAN HARIAN (Hierarchical Folder System: Folder Dalam Folder) -->
+      <!-- 6. MENU RENUNGAN HARIAN (Hierarchical Folder System: Folder Dalam Folder) -->
       <section id="renunganSectionCard" class="w-full rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 shadow-rococo overflow-hidden">
-        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press border-b border-sky-soft/60" onclick="toggleAccordion('renunganSection')">
+        <button type="button" class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/90 transition btn-press" onclick="toggleAccordion('renunganAccordion')">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
               <span class="material-symbols-outlined text-[22px] text-royal-navy">menu_book</span>
@@ -273,10 +307,10 @@
               <span class="text-[11px] text-royal-navy/60 font-sans">Santapan Rohani Firman Tuhan & Folder Arsip</span>
             </div>
           </div>
-          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="renunganSectionArrow">expand_more</span>
+          <span class="material-symbols-outlined text-royal-navy/50 transition-transform duration-200" id="renunganAccordionArrow">expand_more</span>
         </button>
 
-        <div class="p-3.5 flex flex-col gap-3" id="renunganSection">
+        <div class="p-3.5 border-t border-sky-soft/60 hidden flex flex-col gap-3" id="renunganAccordion">
           <!-- Breadcrumb navigation -->
           <div id="renunganBreadcrumbs" class="text-[11px] text-royal-navy/70 flex items-center flex-wrap gap-1 font-sans bg-sky-cloud/50 p-2 rounded-xl border border-sky-soft/70">
             <!-- Diisi dinamis -->
@@ -293,6 +327,20 @@
           </div>
         </div>
       </section>
+
+      <!-- 7. Petunjuk Arah & Peta Gereja -->
+      <a id="btnGoogleMaps" href="https://maps.app.goo.gl/CNYqT17tYnc58aD1A" target="_blank" rel="noopener noreferrer" class="w-full p-3.5 rounded-2xl bg-white/80 backdrop-blur-md hover:bg-white border border-white/90 flex items-center justify-between shadow-rococo transition active:scale-[0.99] btn-press">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-soft/60 border border-sky-mid/40 flex items-center justify-center text-royal-navy shrink-0 shadow-inner">
+            <span class="material-symbols-outlined text-[22px] text-royal-navy">location_on</span>
+          </div>
+          <div class="flex flex-col text-left">
+            <span class="font-serif text-xs font-bold text-royal-navy tracking-wide uppercase">Petunjuk Arah & Lokasi Gereja</span>
+            <span class="text-[11px] text-royal-navy/60 font-sans">Navigasi Google Maps ke Gedung GPdI Gosyen Kaloran</span>
+          </div>
+        </div>
+        <span class="material-symbols-outlined text-royal-navy/40 text-[18px]">directions</span>
+      </a>
 
     </div>
   </main>
@@ -416,6 +464,7 @@
         <div class="flex items-center gap-1 overflow-x-auto pb-1 shrink-0 border-b border-sky-soft/60">
           <button type="button" id="tabBtn_warta" class="admin-tab-btn active" onclick="switchAdminTab('warta')">Warta & Kolase</button>
           <button type="button" id="tabBtn_jadwal" class="admin-tab-btn" onclick="switchAdminTab('jadwal')">Jadwal Ibadah</button>
+          <button type="button" id="tabBtn_pengumuman" class="admin-tab-btn" onclick="switchAdminTab('pengumuman')">Pengumuman</button>
           <button type="button" id="tabBtn_persekutuan" class="admin-tab-btn" onclick="switchAdminTab('persekutuan')">Persekutuan</button>
           <button type="button" id="tabBtn_dokumentasi" class="admin-tab-btn" onclick="switchAdminTab('dokumentasi')">Dokumentasi</button>
           <button type="button" id="tabBtn_renungan" class="admin-tab-btn" onclick="switchAdminTab('renungan')">Renungan</button>
@@ -544,6 +593,64 @@
           </div>
         </div>
 
+        <!-- Tab: Pengumuman (Carousel / Slider Editor) -->
+        <div id="tabContent_pengumuman" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+          <!-- Form Tambah / Edit Pengumuman -->
+          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
+            <span class="font-serif text-xs font-bold text-royal-navy" id="pengumumanFormTitle">1. Tambah Pengumuman Baru (Carousel)</span>
+            <div class="flex flex-col gap-2 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] text-royal-navy/60 font-semibold">Judul Pengumuman:</label>
+                  <input type="text" id="formPengumumanJudul" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs" placeholder="e.g. Ibadah Syukur & Perjamuan Kudus">
+                </div>
+                <div>
+                  <label class="text-[10px] text-royal-navy/60 font-semibold">Tanggal / Waktu:</label>
+                  <input type="text" id="formPengumumanTanggal" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs" placeholder="e.g. 1 November 2026">
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] text-royal-navy/60 font-semibold">Deskripsi / Isi Pengumuman:</label>
+                <textarea id="formPengumumanDeskripsi" rows="3" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs" placeholder="Tuliskan isi pengumuman atau warta kegiatan jemaat di sini..."></textarea>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] text-royal-navy/60 font-semibold">Jenis Media Lampiran:</label>
+                  <select id="formPengumumanMediaType" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs" onchange="handlePengumumanMediaTypeChange()">
+                    <option value="none">Tidak Ada Media (Hanya Teks)</option>
+                    <option value="image">Gambar / Foto (PNG/JPG)</option>
+                    <option value="video">Video (MP4/WebM)</option>
+                    <option value="document">Dokumen / PDF</option>
+                  </select>
+                </div>
+                <div id="pengumumanFileInputWrapper" class="hidden">
+                  <label class="text-[10px] text-royal-navy/60 font-semibold" id="pengumumanFileInputLabel">Pilih File Media:</label>
+                  <input type="file" id="formPengumumanMediaFile" accept="image/*,video/*,.pdf,.doc,.docx" class="w-full text-xs">
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <button type="button" id="btnSubmitPengumuman" onclick="submitPengumuman()" class="py-2 px-3.5 rounded-xl bg-royal-navy text-white text-xs font-serif font-bold shadow-xs hover:bg-deep-blue">
+                Terbitkan Pengumuman
+              </button>
+              <button type="button" id="btnCancelEditPengumuman" onclick="cancelEditPengumuman()" class="hidden py-2 px-3 rounded-xl bg-gray-200 text-royal-navy text-xs font-serif font-bold">
+                Batal Edit
+              </button>
+            </div>
+          </div>
+
+          <!-- Daftar Pengumuman -->
+          <div class="p-3 rounded-2xl bg-white border border-sky-soft flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="font-serif text-xs font-bold text-royal-navy">2. Daftar Pengumuman (Edit & Hapus Permanen)</span>
+              <span class="text-[10px] text-royal-navy/50">Hapus permanen di database</span>
+            </div>
+            <div id="adminPengumumanList" class="flex flex-col gap-2">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
         <!-- Tab 3: Persekutuan Pekanan -->
         <div id="tabContent_persekutuan" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
@@ -618,9 +725,9 @@
             </button>
           </div>
 
-          <!-- Tulis Renungan Baru -->
+          <!-- Tulis / Edit Renungan -->
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
-            <span class="font-serif text-xs font-bold text-royal-navy">2. Tulis & Unggah Renungan Harian</span>
+            <span class="font-serif text-xs font-bold text-royal-navy" id="renunganFormTitle">2. Tulis & Unggah Renungan Harian</span>
             <div class="flex flex-col gap-2 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
@@ -645,9 +752,25 @@
                 <input type="file" id="formRenunganImageInput" accept="image/*" class="w-full text-xs">
               </div>
             </div>
-            <button type="button" onclick="addRenunganArticle()" class="py-2 px-3 rounded-xl bg-royal-navy text-white text-xs font-serif font-bold mt-1 self-start">
-              Terbitkan Renungan
-            </button>
+            <div class="flex items-center gap-2 mt-1">
+              <button type="button" id="btnSubmitRenungan" onclick="addRenunganArticle()" class="py-2 px-3.5 rounded-xl bg-royal-navy text-white text-xs font-serif font-bold shadow-xs hover:bg-deep-blue">
+                Terbitkan Renungan
+              </button>
+              <button type="button" id="btnCancelEditRenungan" onclick="cancelEditRenunganArticle()" class="hidden py-2 px-3 rounded-xl bg-gray-200 text-royal-navy text-xs font-serif font-bold">
+                Batal Edit
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Daftar Renungan (Bisa Diedit & Dihapus Permanen) -->
+          <div class="p-3 rounded-2xl bg-white border border-sky-soft flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="font-serif text-xs font-bold text-royal-navy">3. Kelola Renungan (Edit & Hapus Permanen)</span>
+              <span class="text-[10px] text-royal-navy/50">Hapus permanen di database</span>
+            </div>
+            <div id="adminRenunganArticlesList" class="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+              <!-- Rendered by JS -->
+            </div>
           </div>
         </div>
 
