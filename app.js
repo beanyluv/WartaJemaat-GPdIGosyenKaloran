@@ -233,8 +233,45 @@ async function loadDatabase() {
   }
 }
 
+let lastLocalSaveTimestamp = 0;
+
+// Helper: Kompresi & Optimalisasi Gambar HD Cepat (Canvas Memory)
+function optimizeImageFile(file, maxW = 2200, maxH = 3200, quality = 0.90) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Gagal membaca file gambar"));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Format gambar tidak didukung"));
+      img.onload = () => {
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        let scale = 1;
+        if (w > maxW || h > maxH) {
+          scale = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, w, h);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function saveDatabase() {
   cleanDatabaseSecurity(APP_DB);
+  lastLocalSaveTimestamp = Date.now();
   saveToLocalMirror();
 
   // 1. Save to Central Cloud API (/api/data) -> Cloudflare KV on Pages or server.py locally
@@ -276,6 +313,7 @@ let isSyncingSilently = false;
 async function syncFromCloudSilently() {
   if (isSyncingSilently) return;
   if (isAdminAuthenticated) return; // Don't interrupt if admin is currently editing
+  if (Date.now() - lastLocalSaveTimestamp < 15000) return; // Lindungi agar tidak menimpa simpanan baru
 
   try {
     isSyncingSilently = true;
@@ -1442,6 +1480,7 @@ function populateAdminDashboard() {
   document.getElementById("adminWartaDateInput").value = APP_DB.warta.editionDate || "November 2026";
   document.getElementById("adminWartaSubtitleInput").value = APP_DB.warta.subtitle || "Edisi Ibadah Raya & Perjamuan Kudus";
 
+  renderAdminCurrentWartaPreview();
   renderAdminJadwalTable();
   renderAdminPengumumanList();
   renderAdminPersekutuanList();
@@ -1453,6 +1492,51 @@ function populateAdminDashboard() {
   document.getElementById("adminCloudUrlInput").value = (APP_DB.cloudConfig && APP_DB.cloudConfig.apiUrl) || "";
 }
 
+// Pratinjau Warta Jemaat Aktif Saat Ini di Panel Pengelola
+function renderAdminCurrentWartaPreview() {
+  const container = document.getElementById("adminCurrentWartaContainer");
+  if (!container) return;
+
+  const warta = APP_DB.warta;
+  if (warta && warta.imageUrl) {
+    container.innerHTML = `
+      <div class="w-full flex flex-col sm:flex-row items-center gap-3">
+        <div class="relative max-h-44 max-w-xs rounded-xl overflow-hidden border border-sky-soft bg-sky-cloud/40 shadow-xs shrink-0 cursor-pointer" onclick="openPhotoViewer('${warta.imageUrl}', 'Warta Jemaat Aktif')">
+          <img src="${warta.imageUrl}" alt="Warta Jemaat" class="max-h-44 w-auto object-contain hover:scale-[1.02] transition-transform">
+        </div>
+        <div class="flex flex-col gap-1 text-xs text-royal-navy">
+          <div class="font-serif font-bold text-sm text-royal-navy">${warta.editionDate || 'Warta Jemaat'}</div>
+          <p class="text-[11px] text-royal-navy/70">${warta.subtitle || '-'}</p>
+          <span class="inline-flex items-center gap-1 text-[10px] font-sans text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full w-fit mt-1">
+            <span class="material-symbols-outlined text-[12px]">verified</span> Aktif & Terpasang
+          </span>
+        </div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="text-center py-3 text-xs text-royal-navy/50 italic font-sans">
+        Belum ada gambar warta jemaat yang aktif. Silakan unggah gambar tunggal atau pasang kolase di atas.
+      </div>
+    `;
+  }
+}
+
+async function deleteCurrentWartaImage() {
+  if (!APP_DB.warta || !APP_DB.warta.imageUrl) {
+    showToast("Belum ada gambar warta untuk dihapus.");
+    return;
+  }
+  if (confirm("Hapus permanen gambar warta jemaat saat ini?")) {
+    APP_DB.warta.imageUrl = "";
+    APP_DB.warta.isExpired = false;
+    renderAdminCurrentWartaPreview();
+    renderWartaImage();
+    await saveDatabase();
+    showToast("Gambar warta telah dihapus permanen! ✓");
+  }
+}
+
 // Save Warta Info
 async function saveAdminWartaInfo() {
   const newDate = document.getElementById("adminWartaDateInput").value.trim();
@@ -1462,27 +1546,42 @@ async function saveAdminWartaInfo() {
   APP_DB.warta.subtitle = newSub || "Edisi Ibadah Raya & Perjamuan Kudus";
 
   await saveDatabase();
+  renderAdminCurrentWartaPreview();
+  renderWartaImage();
   showToast("Informasi Warta Jemaat disimpan!");
 }
 
-// Upload Single Warta Image (100% HD)
+// Upload Single Warta Image (100% HD dengan Optimalisasi Cepat)
 function triggerWartaUpload() {
   document.getElementById("adminWartaSingleFileInput").click();
 }
 
-function handleSingleWartaUpload(event) {
+async function handleSingleWartaUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    APP_DB.warta.imageUrl = e.target.result;
-    APP_DB.warta.createdAt = Date.now(); // Reset 30-day timer
+  showToast("Memproses gambar warta tunggal HD... ⏳");
+  try {
+    const dataUrl = await optimizeImageFile(file, 2200, 3200, 0.92);
+    APP_DB.warta.imageUrl = dataUrl;
+    APP_DB.warta.createdAt = Date.now();
     APP_DB.warta.isExpired = false;
-    await saveDatabase();
-    showToast("Gambar Warta HD berhasil diperbarui! ✓");
-  };
-  reader.readAsDataURL(file);
+
+    renderAdminCurrentWartaPreview();
+    renderWartaImage();
+
+    const success = await saveDatabase();
+    if (success) {
+      showToast("Gambar Warta HD berhasil diperbarui & disimpan permanen! ✓");
+    } else {
+      showToast("Gambar Warta berhasil diperbarui di perangkat ini ✓");
+    }
+  } catch (err) {
+    console.error("Single warta upload error:", err);
+    showToast("Gagal memproses gambar warta: " + err.message);
+  } finally {
+    event.target.value = "";
+  }
 }
 
 // -------------------------------------------------------------
@@ -1530,7 +1629,7 @@ async function handleCollageFiles(event) {
   });
   fileListBox.classList.remove("hidden");
 
-  // 2. Muat semua gambar dalam resolusi asli
+  // 2. Muat semua gambar
   const images = await Promise.all(files.map(file => new Promise(resolve => {
     const img = new Image();
     img.onload = () => resolve(img);
@@ -1540,15 +1639,16 @@ async function handleCollageFiles(event) {
   const spacing = parseInt(document.getElementById("collageSpacingInput").value) || 20;
   const border = parseInt(document.getElementById("collageBorderInput").value) || 20;
 
-  // 3. 100% HD: Gunakan lebar asli maksimum
-  const colW = Math.max(...images.map(img => img.naturalWidth));
+  // 3. HD Tajam: Tentukan colW (maksimal 1100px per kolom agar total kanvas ~2200-2400px sangat tajam tanpa membebani browser)
+  let colW = Math.max(...images.map(img => img.naturalWidth || 800));
+  if (colW > 1100) colW = 1100;
 
   const scaled = images.map(img => {
-    const scale = colW / img.naturalWidth;
+    const scale = colW / (img.naturalWidth || 800);
     return {
       img,
       w: colW,
-      h: Math.round(img.naturalHeight * scale)
+      h: Math.round((img.naturalHeight || 1000) * scale)
     };
   });
 
@@ -1597,20 +1697,22 @@ async function handleCollageFiles(event) {
   currentCollageCanvas = canvas;
   previewBox.innerHTML = "";
   previewBox.appendChild(canvas);
-  resInfo.textContent = `Resolusi Kolase: ${canvas.width} x ${canvas.height} px (100% HD Lossless)`;
+  resInfo.textContent = `Resolusi Kolase: ${canvas.width} x ${canvas.height} px (HD Crisp Lossless)`;
 
   applyBtn.disabled = false;
   downloadBtn.disabled = false;
 }
 
-// Pasang Kolase Sebagai Warta Jemaat & HAPUS FOTO SEBELUM KOLASE
+// Pasang Kolase Sebagai Warta Jemaat & HAPUS FOTO SEBELUM KOLASE SECARA PERMANEN
 async function applyCollageToWarta() {
   if (!currentCollageCanvas) return;
 
-  // 1. Simpan gambar kolase HD ke database
-  const dataUrl = currentCollageCanvas.toDataURL("image/png");
+  showToast("Menyimpan Kolase Warta HD ke cloud... ⏳");
+
+  // 1. Simpan gambar kolase HD ke database dalam format JPEG berkualitas tinggi (0.92)
+  const dataUrl = currentCollageCanvas.toDataURL("image/jpeg", 0.92);
   APP_DB.warta.imageUrl = dataUrl;
-  APP_DB.warta.createdAt = Date.now(); // Reset 30-day auto cleanup
+  APP_DB.warta.createdAt = Date.now();
   APP_DB.warta.isExpired = false;
 
   // 2. HAPUS FOTO SEBELUM KOLASE (Membersihkan input dan memori)
@@ -1632,8 +1734,15 @@ async function applyCollageToWarta() {
 
   currentCollageCanvas = null;
 
-  await saveDatabase();
-  showToast("Kolase HD terpasang sebagai Warta & foto sumber telah dibersihkan! ✓");
+  renderAdminCurrentWartaPreview();
+  renderWartaImage();
+
+  const success = await saveDatabase();
+  if (success) {
+    showToast("Kolase Warta HD berhasil dipasang permanen & tersimpan di Cloud! ✓");
+  } else {
+    showToast("Kolase Warta HD diperbarui di perangkat ini ✓");
+  }
 }
 
 function downloadCollagePNG() {
@@ -1645,8 +1754,10 @@ function downloadCollagePNG() {
 }
 
 // -------------------------------------------------------------
-// JADWAL IBADAH ADMIN CRUD (DENGAN TOMBOL AKTIF / NONAKTIF)
+// JADWAL IBADAH ADMIN CRUD (DENGAN FITUR EDIT & NONAKTIFKAN)
 // -------------------------------------------------------------
+let editingJadwalId = null;
+
 function renderAdminJadwalTable() {
   const container = document.getElementById("adminJadwalListContainer");
   if (!container) return;
@@ -1655,7 +1766,7 @@ function renderAdminJadwalTable() {
   (APP_DB.jadwalIbadah || []).forEach(item => {
     const isItemActive = item.active !== false;
     html += `
-      <div class="p-2.5 rounded-xl bg-white border border-sky-soft flex items-center justify-between text-xs gap-2">
+      <div class="p-2.5 rounded-xl bg-white border border-sky-soft flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
         <div class="flex flex-col">
           <div class="font-bold text-royal-navy font-serif flex items-center gap-1.5 flex-wrap">
             <span class="bg-sky-cloud px-1.5 py-0.5 rounded text-[10px] text-antique-gold">${item.hari}</span>
@@ -1666,9 +1777,12 @@ function renderAdminJadwalTable() {
           </div>
           <span class="text-[10px] text-royal-navy/60">${item.keterangan || '-'}</span>
         </div>
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
           <button type="button" onclick="toggleJadwalActive('${item.id}')" title="${isItemActive ? 'Nonaktifkan (sembunyikan dari tabel)' : 'Aktifkan (tampilkan di tabel)'}" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition active:scale-95 ${isItemActive ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-300'}">
             ${isItemActive ? 'Nonaktifkan' : 'Aktifkan'}
+          </button>
+          <button type="button" onclick="editJadwalIbadah('${item.id}')" class="px-2 py-1 rounded-lg bg-sky-soft hover:bg-sky-mid/60 text-royal-navy font-semibold text-[10px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">edit</span> Edit
           </button>
           <button type="button" onclick="deleteJadwalIbadah('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus">
             <span class="material-symbols-outlined text-[17px]">delete</span>
@@ -1691,7 +1805,51 @@ async function toggleJadwalActive(id) {
   }
 }
 
-async function addJadwalIbadah() {
+function editJadwalIbadah(id) {
+  const item = (APP_DB.jadwalIbadah || []).find(j => j.id === id);
+  if (!item) return;
+
+  editingJadwalId = id;
+  const selectHari = document.getElementById("formJadwalHari");
+  if (selectHari) selectHari.value = item.hari || "Minggu";
+  document.getElementById("formJadwalJam").value = item.jam || "";
+  document.getElementById("formJadwalNama").value = item.nama || "";
+  document.getElementById("formJadwalKet").value = item.keterangan || "";
+
+  const titleEl = document.getElementById("jadwalFormTitle");
+  if (titleEl) titleEl.textContent = "Edit Baris Jadwal Ibadah";
+  const btnSubmit = document.getElementById("btnSubmitJadwal");
+  if (btnSubmit) btnSubmit.textContent = "✓ Simpan Perubahan Jadwal";
+  const btnCancel = document.getElementById("btnCancelEditJadwal");
+  if (btnCancel) btnCancel.classList.remove("hidden");
+
+  const formBox = document.getElementById("jadwalFormContainer");
+  if (formBox) {
+    try {
+      formBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (e) {
+      formBox.scrollIntoView(true);
+    }
+  }
+}
+
+function cancelEditJadwalIbadah() {
+  editingJadwalId = null;
+  const selectHari = document.getElementById("formJadwalHari");
+  if (selectHari) selectHari.value = "Minggu";
+  document.getElementById("formJadwalJam").value = "";
+  document.getElementById("formJadwalNama").value = "";
+  document.getElementById("formJadwalKet").value = "";
+
+  const titleEl = document.getElementById("jadwalFormTitle");
+  if (titleEl) titleEl.textContent = "Tambah Baris Jadwal Ibadah";
+  const btnSubmit = document.getElementById("btnSubmitJadwal");
+  if (btnSubmit) btnSubmit.textContent = "+ Tambah Jadwal Ibadah";
+  const btnCancel = document.getElementById("btnCancelEditJadwal");
+  if (btnCancel) btnCancel.classList.add("hidden");
+}
+
+async function submitJadwalIbadah() {
   const hari = document.getElementById("formJadwalHari").value;
   const jam = document.getElementById("formJadwalJam").value.trim();
   const nama = document.getElementById("formJadwalNama").value.trim();
@@ -1702,22 +1860,34 @@ async function addJadwalIbadah() {
     return;
   }
 
-  APP_DB.jadwalIbadah.push({
-    id: "j_" + Date.now(),
-    hari,
-    jam,
-    nama,
-    keterangan: ket,
-    active: true
-  });
+  if (editingJadwalId) {
+    const item = (APP_DB.jadwalIbadah || []).find(j => j.id === editingJadwalId);
+    if (item) {
+      item.hari = hari;
+      item.jam = jam;
+      item.nama = nama;
+      item.keterangan = ket;
+      showToast("Jadwal ibadah berhasil diperbarui! ✓");
+    }
+    cancelEditJadwalIbadah();
+  } else {
+    APP_DB.jadwalIbadah.push({
+      id: "j_" + Date.now(),
+      hari,
+      jam,
+      nama,
+      keterangan: ket,
+      active: true
+    });
+    showToast("Jadwal ibadah ditambahkan! ✓");
+    cancelEditJadwalIbadah();
+  }
 
   await saveDatabase();
   renderAdminJadwalTable();
-  document.getElementById("formJadwalJam").value = "";
-  document.getElementById("formJadwalNama").value = "";
-  document.getElementById("formJadwalKet").value = "";
-  showToast("Jadwal ibadah ditambahkan!");
+  renderJadwalIbadah();
 }
+const addJadwalIbadah = submitJadwalIbadah;
 
 async function deleteJadwalIbadah(id) {
   if (confirm("Hapus jadwal ini?")) {
@@ -1823,6 +1993,15 @@ async function submitPengumuman() {
 
   if (fileInput.files && fileInput.files[0]) {
     const file = fileInput.files[0];
+    if (mediaType === "image") {
+      try {
+        const optimizedUrl = await optimizeImageFile(file, 1600, 1600, 0.88);
+        await finalizeSubmitPengumuman(judul, tanggal, deskripsi, mediaType, optimizedUrl, file.name);
+        return;
+      } catch (err) {
+        console.error("Image optimization error:", err);
+      }
+    }
     const reader = new FileReader();
     reader.onload = async (e) => {
       await finalizeSubmitPengumuman(judul, tanggal, deskripsi, mediaType, e.target.result, file.name);
@@ -1941,8 +2120,10 @@ async function deletePengumuman(id) {
 }
 
 // -------------------------------------------------------------
-// PERSEKUTUAN PEKANAN ADMIN CRUD (DENGAN TOMBOL AKTIF / NONAKTIF)
+// PERSEKUTUAN PEKANAN ADMIN CRUD (DENGAN FITUR EDIT & NONAKTIFKAN)
 // -------------------------------------------------------------
+let editingPersekutuanId = null;
+
 function renderAdminPersekutuanList() {
   const container = document.getElementById("adminPersekutuanListContainer");
   if (!container) return;
@@ -1951,7 +2132,7 @@ function renderAdminPersekutuanList() {
   (APP_DB.jadwalPersekutuan || []).forEach(item => {
     const isItemActive = item.active !== false;
     html += `
-      <div class="p-2.5 rounded-xl bg-white border border-sky-soft flex items-center justify-between text-xs gap-2">
+      <div class="p-2.5 rounded-xl bg-white border border-sky-soft flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
         <div class="flex flex-col">
           <div class="font-bold text-royal-navy font-serif flex items-center gap-1.5 flex-wrap">
             <span>${item.nama}</span>
@@ -1961,9 +2142,12 @@ function renderAdminPersekutuanList() {
           </div>
           <span class="text-[10px] text-royal-navy/60">${item.deskripsi} • <strong>${item.waktu}</strong></span>
         </div>
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
           <button type="button" onclick="togglePersekutuanActive('${item.id}')" title="${isItemActive ? 'Nonaktifkan (sembunyikan dari daftar)' : 'Aktifkan (tampilkan di daftar)'}" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition active:scale-95 ${isItemActive ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-300'}">
             ${isItemActive ? 'Nonaktifkan' : 'Aktifkan'}
+          </button>
+          <button type="button" onclick="editPersekutuan('${item.id}')" class="px-2 py-1 rounded-lg bg-sky-soft hover:bg-sky-mid/60 text-royal-navy font-semibold text-[10px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">edit</span> Edit
           </button>
           <button type="button" onclick="deletePersekutuan('${item.id}')" class="text-rose-500 hover:text-rose-700 p-1" title="Hapus">
             <span class="material-symbols-outlined text-[17px]">delete</span>
@@ -1986,7 +2170,47 @@ async function togglePersekutuanActive(id) {
   }
 }
 
-async function addPersekutuan() {
+function editPersekutuan(id) {
+  const item = (APP_DB.jadwalPersekutuan || []).find(p => p.id === id);
+  if (!item) return;
+
+  editingPersekutuanId = id;
+  document.getElementById("formPersekutuanNama").value = item.nama || "";
+  document.getElementById("formPersekutuanKet").value = item.deskripsi || "";
+  document.getElementById("formPersekutuanWaktu").value = item.waktu || "";
+
+  const titleEl = document.getElementById("persekutuanFormTitle");
+  if (titleEl) titleEl.textContent = "Edit Persekutuan Pekanan";
+  const btnSubmit = document.getElementById("btnSubmitPersekutuan");
+  if (btnSubmit) btnSubmit.textContent = "✓ Simpan Perubahan Persekutuan";
+  const btnCancel = document.getElementById("btnCancelEditPersekutuan");
+  if (btnCancel) btnCancel.classList.remove("hidden");
+
+  const formBox = document.getElementById("persekutuanFormContainer");
+  if (formBox) {
+    try {
+      formBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (e) {
+      formBox.scrollIntoView(true);
+    }
+  }
+}
+
+function cancelEditPersekutuan() {
+  editingPersekutuanId = null;
+  document.getElementById("formPersekutuanNama").value = "";
+  document.getElementById("formPersekutuanKet").value = "";
+  document.getElementById("formPersekutuanWaktu").value = "";
+
+  const titleEl = document.getElementById("persekutuanFormTitle");
+  if (titleEl) titleEl.textContent = "Tambah Persekutuan Pekanan";
+  const btnSubmit = document.getElementById("btnSubmitPersekutuan");
+  if (btnSubmit) btnSubmit.textContent = "+ Tambah Persekutuan";
+  const btnCancel = document.getElementById("btnCancelEditPersekutuan");
+  if (btnCancel) btnCancel.classList.add("hidden");
+}
+
+async function submitPersekutuan() {
   const nama = document.getElementById("formPersekutuanNama").value.trim();
   const deskripsi = document.getElementById("formPersekutuanKet").value.trim();
   const waktu = document.getElementById("formPersekutuanWaktu").value.trim();
@@ -1996,33 +2220,47 @@ async function addPersekutuan() {
     return;
   }
 
-  APP_DB.jadwalPersekutuan.push({
-    id: "p_" + Date.now(),
-    nama,
-    deskripsi,
-    waktu,
-    icon: "groups"
-  });
+  if (editingPersekutuanId) {
+    const item = (APP_DB.jadwalPersekutuan || []).find(p => p.id === editingPersekutuanId);
+    if (item) {
+      item.nama = nama;
+      item.deskripsi = deskripsi;
+      item.waktu = waktu;
+      showToast("Persekutuan berhasil diperbarui! ✓");
+    }
+    cancelEditPersekutuan();
+  } else {
+    APP_DB.jadwalPersekutuan.push({
+      id: "p_" + Date.now(),
+      nama,
+      deskripsi,
+      waktu,
+      icon: "groups",
+      active: true
+    });
+    showToast("Persekutuan ditambahkan! ✓");
+    cancelEditPersekutuan();
+  }
 
   await saveDatabase();
   renderAdminPersekutuanList();
-  document.getElementById("formPersekutuanNama").value = "";
-  document.getElementById("formPersekutuanKet").value = "";
-  document.getElementById("formPersekutuanWaktu").value = "";
-  showToast("Persekutuan ditambahkan!");
+  renderJadwalPersekutuan();
 }
+const addPersekutuan = submitPersekutuan;
 
 async function deletePersekutuan(id) {
   if (confirm("Hapus persekutuan ini?")) {
     APP_DB.jadwalPersekutuan = APP_DB.jadwalPersekutuan.filter(p => p.id !== id);
+    if (editingPersekutuanId === id) cancelEditPersekutuan();
     await saveDatabase();
     renderAdminPersekutuanList();
+    renderJadwalPersekutuan();
     showToast("Persekutuan dihapus");
   }
 }
 
 // -------------------------------------------------------------
-// DOKUMENTASI ADMIN
+// DOKUMENTASI ADMIN (PREVIEW GAMBAR & HAPUS FOTO INDIVIDU)
 // -------------------------------------------------------------
 function renderAdminDocFolders() {
   const select = document.getElementById("adminDocFolderSelect");
@@ -2032,17 +2270,96 @@ function renderAdminDocFolders() {
   select.innerHTML = "";
   let listHtml = "";
 
-  (APP_DB.dokumentasi || []).forEach(f => {
+  const albums = APP_DB.dokumentasi || [];
+  if (!albums.length) {
+    select.innerHTML = `<option value="">(Belum ada album, buat album baru)</option>`;
+    list.innerHTML = `<span class="text-xs text-royal-navy/50 italic py-2">Belum ada album dokumentasi yang dibuat.</span>`;
+    return;
+  }
+
+  albums.forEach(f => {
     select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+    const photos = f.photos || [];
+
+    let photosHtml = "";
+    if (photos.length > 0) {
+      photosHtml = `
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 pt-2 border-t border-sky-soft/40">
+          ${photos.map(p => `
+            <div class="group relative aspect-square rounded-xl overflow-hidden border border-sky-soft bg-sky-cloud/30 shadow-2xs">
+              <img src="${p.url}" alt="${p.title || 'Foto'}" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-royal-navy/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-1">
+                <button type="button" onclick="openPhotoViewer('${p.url}', '${(p.title || 'Foto').replace(/'/g, "\\'")}')" class="w-6 h-6 rounded-full bg-white text-royal-navy flex items-center justify-center shadow-xs hover:scale-110 transition-transform" title="Perbesar">
+                  <span class="material-symbols-outlined text-[13px]">zoom_in</span>
+                </button>
+                <button type="button" onclick="deleteDocPhoto('${f.id}', '${p.id}')" class="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xs hover:bg-rose-700 hover:scale-110 transition-transform" title="Hapus Foto Ini">
+                  <span class="material-symbols-outlined text-[13px]">delete</span>
+                </button>
+              </div>
+              <button type="button" onclick="deleteDocPhoto('${f.id}', '${p.id}')" class="sm:hidden absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-md" title="Hapus Foto">
+                <span class="material-symbols-outlined text-[12px]">delete</span>
+              </button>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    } else {
+      photosHtml = `
+        <div class="text-[10px] text-royal-navy/40 italic py-1">
+          Belum ada foto di album ini. Gunakan form unggah di atas untuk menambahkan foto.
+        </div>
+      `;
+    }
+
     listHtml += `
-      <div class="p-2 rounded-lg bg-sky-cloud/50 border border-sky-soft flex items-center justify-between text-xs">
-        <span>📁 <strong>${f.name}</strong> (${(f.photos || []).length} foto)</span>
-        <button type="button" onclick="deleteDocFolder('${f.id}')" class="text-rose-500 p-0.5"><span class="material-symbols-outlined text-[15px]">delete</span></button>
+      <div class="p-3 rounded-2xl bg-sky-cloud/40 border border-sky-soft flex flex-col gap-2">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-antique-gold">folder</span>
+            <strong class="font-serif text-royal-navy text-xs">${f.name}</strong>
+            <span class="text-[10px] text-royal-navy/60 font-sans">(${photos.length} foto • ${f.date || 'Aktif'})</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="renameDocFolder('${f.id}')" class="px-2 py-0.5 rounded-lg bg-sky-soft hover:bg-sky-mid/60 text-royal-navy text-[10px] font-semibold flex items-center gap-1 transition">
+              <span class="material-symbols-outlined text-[12px]">edit</span> Ganti Nama
+            </button>
+            <button type="button" onclick="deleteDocFolder('${f.id}')" class="px-2 py-0.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-semibold border border-rose-200 flex items-center gap-1 transition" title="Hapus Seluruh Album">
+              <span class="material-symbols-outlined text-[12px]">delete</span> Hapus Album
+            </button>
+          </div>
+        </div>
+        ${photosHtml}
       </div>
     `;
   });
 
   list.innerHTML = listHtml;
+}
+
+async function renameDocFolder(id) {
+  const folder = (APP_DB.dokumentasi || []).find(f => f.id === id);
+  if (!folder) return;
+  const newName = prompt("Ubah nama album dokumentasi:", folder.name);
+  if (!newName || !newName.trim() || newName.trim() === folder.name) return;
+
+  folder.name = newName.trim();
+  await saveDatabase();
+  renderAdminDocFolders();
+  renderDokumentasi();
+  showToast("Nama album berhasil diubah! ✓");
+}
+
+async function deleteDocPhoto(folderId, photoId) {
+  const folder = (APP_DB.dokumentasi || []).find(f => f.id === folderId);
+  if (!folder) return;
+
+  if (confirm("Hapus foto ini dari album dokumentasi?")) {
+    folder.photos = (folder.photos || []).filter(p => p.id !== photoId);
+    await saveDatabase();
+    renderAdminDocFolders();
+    renderDokumentasi();
+    showToast("Foto berhasil dihapus dari album! ✓");
+  }
 }
 
 async function addDocFolder() {
@@ -2058,6 +2375,7 @@ async function addDocFolder() {
 
   await saveDatabase();
   renderAdminDocFolders();
+  renderDokumentasi();
   showToast("Folder album dibuat!");
 }
 
@@ -2066,6 +2384,7 @@ async function deleteDocFolder(id) {
     APP_DB.dokumentasi = APP_DB.dokumentasi.filter(f => f.id !== id);
     await saveDatabase();
     renderAdminDocFolders();
+    renderDokumentasi();
     showToast("Album dihapus");
   }
 }
@@ -2079,20 +2398,31 @@ async function handleDocPhotoUpload(event) {
   }
 
   const files = Array.from(event.target.files);
-  for (const file of files) {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
+  if (!files.length) return;
+
+  showToast(`Mengoptimalkan & mengunggah ${files.length} foto... ⏳`);
+
+  try {
+    for (const file of files) {
+      const optimizedUrl = await optimizeImageFile(file, 1600, 1600, 0.86);
+      if (!folder.photos) folder.photos = [];
       folder.photos.push({
         id: "ph_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
         title: file.name.replace(/\.[^/.]+$/, ""),
-        url: e.target.result
+        url: optimizedUrl
       });
-      await saveDatabase();
-      renderAdminDocFolders();
-    };
-    reader.readAsDataURL(file);
+    }
+
+    await saveDatabase();
+    renderAdminDocFolders();
+    renderDokumentasi();
+    showToast(`${files.length} foto berhasil diunggah ke album "${folder.name}"! ✓`);
+  } catch (err) {
+    console.error("Doc photo upload error:", err);
+    showToast("Gagal mengunggah foto: " + err.message);
+  } finally {
+    event.target.value = "";
   }
-  showToast(`${files.length} foto berhasil diunggah!`);
 }
 
 // -------------------------------------------------------------
@@ -2147,6 +2477,24 @@ async function addRenunganSubfolder() {
   showToast(`Subfolder "${name}" berhasil dibuat!`);
 }
 
+async function renameRenunganSubfolder() {
+  const folderId = document.getElementById("adminRenunganParentFolderSelect").value;
+  const folder = findFolderById(folderId);
+  if (!folder) {
+    alert("Pilih folder yang ingin diubah namanya terlebih dahulu");
+    return;
+  }
+  const newName = prompt(`Ubah nama folder "${folder.name}" menjadi:`, folder.name);
+  if (!newName || !newName.trim() || newName.trim() === folder.name) return;
+
+  folder.name = newName.trim();
+  await saveDatabase();
+  renderAdminRenunganSelects();
+  renderAdminRenunganArticlesList();
+  renderRenungan();
+  showToast(`Nama folder diubah menjadi "${folder.name}"! ✓`);
+}
+
 async function addRenunganArticle() {
   const folderId = document.getElementById("adminRenunganArticleFolderSelect").value;
   const title = document.getElementById("formRenunganTitle").value.trim();
@@ -2160,6 +2508,13 @@ async function addRenunganArticle() {
   }
 
   if (imgInput.files && imgInput.files[0]) {
+    try {
+      const optimizedUrl = await optimizeImageFile(imgInput.files[0], 1600, 1600, 0.88);
+      await saveOrUpdateArticle(folderId, title, ayat, konten, optimizedUrl);
+      return;
+    } catch (err) {
+      console.error("Renungan image optimize error:", err);
+    }
     const reader = new FileReader();
     reader.onload = async (e) => {
       await saveOrUpdateArticle(folderId, title, ayat, konten, e.target.result);

@@ -552,12 +552,26 @@
             <div id="collagePreviewContainer" class="w-full flex justify-center"></div>
             <div id="collageResInfo" class="text-[10px] text-royal-navy/50 text-center font-mono"></div>
           </div>
+
+          <!-- 4. Pratinjau Warta Jemaat Aktif Saat Ini -->
+          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+              <span class="font-serif text-xs font-bold text-royal-navy">4. Gambar Warta Aktif Saat Ini</span>
+              <button type="button" onclick="deleteCurrentWartaImage()" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-sans font-semibold border border-rose-200 transition flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">delete</span>
+                <span>Hapus Gambar Warta</span>
+              </button>
+            </div>
+            <div id="adminCurrentWartaContainer" class="flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-sky-soft min-h-[70px]">
+              <!-- Populated by JS -->
+            </div>
+          </div>
         </div>
 
         <!-- Tab 2: Jadwal Ibadah -->
         <div id="tabContent_jadwal" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
-          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
-            <span class="font-serif text-xs font-bold text-royal-navy">Tambah Baris Jadwal Ibadah</span>
+          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2" id="jadwalFormContainer">
+            <span class="font-serif text-xs font-bold text-royal-navy" id="jadwalFormTitle">Tambah Baris Jadwal Ibadah</span>
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <label class="text-[10px] text-royal-navy/60 font-semibold">Hari:</label>
@@ -584,9 +598,14 @@
                 <input type="text" id="formJadwalKet" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs" placeholder="Setiap Minggu">
               </div>
             </div>
-            <button type="button" onclick="addJadwalIbadah()" class="py-2 px-3 rounded-xl bg-royal-navy text-white text-xs font-serif font-bold mt-1 self-start">
-              + Tambah Jadwal Ibadah
-            </button>
+            <div class="flex items-center gap-2 mt-1">
+              <button type="button" id="btnSubmitJadwal" onclick="submitJadwalIbadah()" class="py-2 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-serif font-bold self-start shadow-xs">
+                + Tambah Jadwal Ibadah
+              </button>
+              <button type="button" id="btnCancelEditJadwal" onclick="cancelEditJadwalIbadah()" class="hidden py-2 px-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-royal-navy text-xs font-serif font-bold self-start">
+                Batal
+              </button>
+            </div>
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -655,8 +674,8 @@
 
         <!-- Tab 3: Persekutuan Pekanan -->
         <div id="tabContent_persekutuan" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
-          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
-            <span class="font-serif text-xs font-bold text-royal-navy">Tambah Persekutuan Pekanan</span>
+          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2" id="persekutuanFormContainer">
+            <span class="font-serif text-xs font-bold text-royal-navy" id="persekutuanFormTitle">Tambah Persekutuan Pekanan</span>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <div>
                 <label class="text-[10px] text-royal-navy/60 font-semibold">Nama Persekutuan:</label>
@@ -671,9 +690,14 @@
                 <input type="text" id="formPersekutuanWaktu" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs" placeholder="19.00 WIB">
               </div>
             </div>
-            <button type="button" onclick="addPersekutuan()" class="py-2 px-3 rounded-xl bg-royal-navy text-white text-xs font-serif font-bold mt-1 self-start">
-              + Tambah Persekutuan
-            </button>
+            <div class="flex items-center gap-2 mt-1">
+              <button type="button" id="btnSubmitPersekutuan" onclick="submitPersekutuan()" class="py-2 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-serif font-bold self-start shadow-xs">
+                + Tambah Persekutuan
+              </button>
+              <button type="button" id="btnCancelEditPersekutuan" onclick="cancelEditPersekutuan()" class="hidden py-2 px-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-royal-navy text-xs font-serif font-bold self-start">
+                Batal
+              </button>
+            </div>
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -685,25 +709,33 @@
         <!-- Tab 4: Dokumentasi -->
         <div id="tabContent_dokumentasi" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <div class="flex items-center justify-between">
-            <span class="font-serif text-xs font-bold text-royal-navy">Kelola Album Dokumentasi</span>
-            <button type="button" onclick="addDocFolder()" class="py-1 px-2.5 rounded-lg bg-royal-navy text-white text-[10px] font-serif font-bold">
-              + Buat Album Baru
+            <div>
+              <span class="font-serif text-xs font-bold text-royal-navy">Kelola Album & Foto Dokumentasi</span>
+              <p class="text-[10px] text-royal-navy/60 font-sans">Lihat pratinjau foto dan hapus foto per individu</p>
+            </div>
+            <button type="button" onclick="addDocFolder()" class="py-1.5 px-3 rounded-xl bg-royal-navy hover:bg-deep-blue text-white text-xs font-serif font-bold flex items-center gap-1 shadow-xs">
+              <span class="material-symbols-outlined text-[15px]">create_new_folder</span>
+              <span>+ Buat Album Baru</span>
             </button>
           </div>
-          <div id="adminDocFolderList" class="flex flex-col gap-1.5"></div>
 
-          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2 mt-2">
+          <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
             <span class="font-serif text-xs font-bold text-royal-navy">Unggah Foto ke Album:</span>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <div>
-                <label class="text-[10px] text-royal-navy/60 font-semibold">Pilih Album:</label>
+                <label class="text-[10px] text-royal-navy/60 font-semibold">Pilih Album Tujuan:</label>
                 <select id="adminDocFolderSelect" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs"></select>
               </div>
               <div>
-                <label class="text-[10px] text-royal-navy/60 font-semibold">Pilih Berkas Foto:</label>
-                <input type="file" multiple accept="image/*" class="w-full text-xs" onchange="handleDocPhotoUpload(event)">
+                <label class="text-[10px] text-royal-navy/60 font-semibold">Pilih Berkas Foto (Bisa Banyak Sekaligus):</label>
+                <input type="file" id="adminDocPhotoInput" multiple accept="image/*" class="w-full text-xs file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:bg-royal-navy file:text-white file:text-[10px]" onchange="handleDocPhotoUpload(event)">
               </div>
             </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <span class="text-[11px] font-bold font-serif text-royal-navy">Daftar Album & Pratinjau Foto:</span>
+            <div id="adminDocFolderList" class="flex flex-col gap-3"></div>
           </div>
         </div>
 
@@ -722,9 +754,15 @@
                 <input type="text" id="formRenunganSubfolderName" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs" placeholder="e.g. Desember 2026 / Minggu 1">
               </div>
             </div>
-            <button type="button" onclick="addRenunganSubfolder()" class="py-1.5 px-3 rounded-lg bg-royal-navy text-white text-[11px] font-serif font-bold self-start mt-1">
-              + Buat Folder Baru
-            </button>
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+              <button type="button" onclick="addRenunganSubfolder()" class="py-1.5 px-3 rounded-lg bg-royal-navy text-white text-[11px] font-serif font-bold shadow-xs">
+                + Buat Folder Baru
+              </button>
+              <button type="button" onclick="renameRenunganSubfolder()" class="py-1.5 px-3 rounded-lg bg-white border border-sky-mid/50 text-royal-navy text-[11px] font-serif font-semibold hover:bg-sky-soft/40 shadow-xs flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">edit</span>
+                <span>Ganti Nama Folder Terpilih</span>
+              </button>
+            </div>
           </div>
 
           <!-- Tulis / Edit Renungan -->
