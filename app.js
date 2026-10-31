@@ -1233,7 +1233,9 @@ function openAdminModal() {
 
   if (isAdminAuthenticated) {
     document.getElementById("pinStep").classList.add("hidden");
-    document.getElementById("adminDashboardStep").classList.remove("hidden");
+    const dashStep = document.getElementById("adminDashboardStep");
+    dashStep.classList.remove("hidden");
+    dashStep.classList.add("flex");
     const logoutBtn = document.getElementById("adminLogoutBtn");
     if (logoutBtn) {
       logoutBtn.classList.remove("hidden");
@@ -1242,7 +1244,9 @@ function openAdminModal() {
     populateAdminDashboard();
   } else {
     document.getElementById("pinStep").classList.remove("hidden");
-    document.getElementById("adminDashboardStep").classList.add("hidden");
+    const dashStep = document.getElementById("adminDashboardStep");
+    dashStep.classList.add("hidden");
+    dashStep.classList.remove("flex");
     const logoutBtn = document.getElementById("adminLogoutBtn");
     if (logoutBtn) {
       logoutBtn.classList.add("hidden");
@@ -1271,7 +1275,11 @@ function logoutAdmin() {
   stopAdminInactivityTimer();
 
   document.getElementById("pinStep").classList.remove("hidden");
-  document.getElementById("adminDashboardStep").classList.add("hidden");
+  const dashStep = document.getElementById("adminDashboardStep");
+  if (dashStep) {
+    dashStep.classList.add("hidden");
+    dashStep.classList.remove("flex");
+  }
 
   const logoutBtn = document.getElementById("adminLogoutBtn");
   if (logoutBtn) {
@@ -1325,7 +1333,11 @@ async function verifyAdminPin() {
     startAdminInactivityTimer();
 
     document.getElementById("pinStep").classList.add("hidden");
-    document.getElementById("adminDashboardStep").classList.remove("hidden");
+    const dashStep = document.getElementById("adminDashboardStep");
+    if (dashStep) {
+      dashStep.classList.remove("hidden");
+      dashStep.classList.add("flex");
+    }
     const logoutBtn = document.getElementById("adminLogoutBtn");
     if (logoutBtn) {
       logoutBtn.classList.remove("hidden");

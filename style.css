@@ -127,12 +127,86 @@ body {
   box-shadow: 0 2px 8px rgba(26, 57, 91, 0.2);
 }
 
-/* Mobile Smooth Scrolling & Momentum for Admin Panel */
-.admin-tab-content {
-  -webkit-overflow-scrolling: touch;
+/* Admin Modal Container & Responsive Size for Mobile & Laptop */
+#adminModal {
   overscroll-behavior: contain;
-  touch-action: pan-y;
+}
+
+#adminModalCard {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 96%;
+  max-width: 520px;
+  height: 92vh;
+  height: 92dvh;
+  max-height: 92vh;
+  max-height: 92dvh;
+}
+
+@media (min-width: 640px) {
+  #adminModalCard {
+    width: 92% !important;
+    max-width: 640px !important;
+    height: 88vh !important;
+    max-height: 88vh !important;
+  }
+}
+
+@media (min-width: 768px) {
+  #adminModalCard {
+    max-width: 768px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  #adminModalCard {
+    max-width: 960px !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  #adminModalCard {
+    max-width: 1080px !important;
+  }
+}
+
+/* Force Flexbox on Admin Dashboard Step when active */
+#adminDashboardStep:not(.hidden) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Force Block Flow & Vertical Scroll on Active Tab Content */
+.admin-tab-content:not(.hidden) {
+  display: block !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
   scrollbar-width: thin;
+  scrollbar-color: rgba(26, 57, 91, 0.4) rgba(26, 57, 91, 0.05);
+}
+
+/* Clear, Smooth Scrollbar for Admin Content */
+.admin-tab-content::-webkit-scrollbar {
+  width: 7px;
+}
+.admin-tab-content::-webkit-scrollbar-track {
+  background: rgba(26, 57, 91, 0.05);
+  border-radius: 9999px;
+}
+.admin-tab-content::-webkit-scrollbar-thumb {
+  background: rgba(26, 57, 91, 0.35);
+  border-radius: 9999px;
+}
+.admin-tab-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 57, 91, 0.6);
 }
 
 /* Horizontal scroll for Admin Tab Navigation */
@@ -144,15 +218,6 @@ body {
 }
 .admin-tabs-nav::-webkit-scrollbar {
   display: none;
-}
-
-/* Mobile viewport height and touch optimization for Admin Modal */
-@media (max-width: 640px) {
-  #adminModal > div {
-    height: 92dvh;
-    max-height: 92dvh;
-    padding: 14px 12px;
-  }
 }
 
 /* Canvas Preview Container */
