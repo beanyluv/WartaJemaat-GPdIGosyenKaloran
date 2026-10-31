@@ -406,13 +406,13 @@
   </div>
 
   <!-- MODAL 3: AKSES PENGELOLA (ADMIN DASHBOARD WITH CLOUD DATABASE & COLLAGE) -->
-  <div class="fixed inset-0 z-50 bg-royal-navy/70 backdrop-blur-md hidden items-center justify-center p-3" id="adminModal" onclick="if(event.target === this) closeAdminModal();">
-    <div class="w-full max-w-lg max-h-[92vh] rounded-3xl bg-white border border-white shadow-2xl p-5 flex flex-col gap-3 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+  <div class="fixed inset-0 z-50 bg-royal-navy/70 backdrop-blur-md hidden items-center justify-center p-2 sm:p-4 overscroll-none" id="adminModal" onclick="if(event.target === this) closeAdminModal();">
+    <div class="w-full max-w-lg h-[92dvh] sm:h-auto max-h-[92dvh] sm:max-h-[88vh] rounded-2xl sm:rounded-3xl bg-white border border-white shadow-2xl p-3.5 sm:p-5 flex flex-col gap-2.5 sm:gap-3 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 min-h-0">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-sky-soft pb-2.5 shrink-0">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full bg-sky-soft/70 flex items-center justify-center text-royal-navy">
+          <div class="w-8 h-8 rounded-full bg-sky-soft/70 flex items-center justify-center text-royal-navy shrink-0">
             <span class="material-symbols-outlined text-[18px] text-antique-gold">admin_panel_settings</span>
           </div>
           <div>
@@ -420,32 +420,46 @@
             <p class="text-[10px] text-royal-navy/60 font-sans">Kelola Warta, Jadwal, Kolase, Dokumentasi & Database</p>
           </div>
         </div>
-        <button type="button" class="text-royal-navy/50 hover:text-royal-navy p-1" onclick="closeAdminModal()">
-          <span class="material-symbols-outlined text-[20px]">close</span>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" id="adminLogoutBtn" class="hidden items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-[11px] font-sans font-medium border border-red-200 transition" onclick="logoutAdmin()" title="Kunci & Keluar Panel Pengelola">
+            <span class="material-symbols-outlined text-[14px]">lock</span>
+            <span>Kunci</span>
+          </button>
+          <button type="button" class="text-royal-navy/50 hover:text-royal-navy p-1" onclick="closeAdminModal()">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
       </div>
 
       <!-- PIN / Password Step -->
-      <div class="flex flex-col gap-3 py-4" id="pinStep">
+      <div class="flex flex-col gap-3 py-4 flex-1 overflow-y-auto min-h-0" id="pinStep">
         <p class="text-xs text-royal-navy/70 leading-relaxed font-sans text-center">
           Masukkan Kata Sandi Pengelola untuk mengakses panel pengaturan:
         </p>
         <div class="max-w-xs mx-auto w-full">
-          <input type="password" id="adminPinInput" maxlength="32" placeholder="Masukkan kata sandi..." class="w-full rounded-xl bg-sky-cloud/50 border border-sky-mid/50 text-center font-mono tracking-wider text-base py-2.5 text-royal-navy focus:outline-none focus:border-vintage-gold focus:ring-1 focus:ring-vintage-gold" onkeydown="if(event.key==='Enter') verifyAdminPin();">
-          <p class="text-[11px] text-red-500 mt-1.5 hidden text-center" id="pinErrorMessage">Kata sandi salah! Gunakan: gosyen123</p>
-          <p class="text-[10px] text-royal-navy/40 mt-1 text-center font-sans">Petunjuk: Kata sandi pengelola adalah <strong>gosyen123</strong></p>
+          <div class="relative">
+            <input type="password" id="adminPinInput" maxlength="32" placeholder="Masukkan kata sandi..." class="w-full rounded-xl bg-sky-cloud/50 border border-sky-mid/50 text-center font-mono tracking-wider text-base py-2.5 px-9 text-royal-navy focus:outline-none focus:border-vintage-gold focus:ring-1 focus:ring-vintage-gold transition-all" onkeydown="if(event.key==='Enter') verifyAdminPin();">
+            <button type="button" onclick="togglePinVisibility()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-royal-navy/50 hover:text-royal-navy p-1 flex items-center justify-center transition" title="Tampilkan / Sembunyikan Sandi">
+              <span class="material-symbols-outlined text-[18px]" id="pinVisibilityIcon">visibility</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-red-600 font-medium mt-1.5 hidden text-center leading-snug" id="pinErrorMessage">Kata sandi salah! Silakan coba lagi.</p>
+          <div id="pinLockoutNotice" class="hidden mt-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] text-center leading-relaxed">
+            <span class="material-symbols-outlined text-[15px] align-middle text-amber-600 mr-1">timer</span>
+            <span id="pinLockoutText"></span>
+          </div>
         </div>
         <div class="max-w-xs mx-auto w-full">
-          <button type="button" class="w-full py-2.5 rounded-xl bg-royal-navy text-white font-serif font-bold text-xs tracking-wider shadow-md hover:bg-deep-blue btn-press transition" onclick="verifyAdminPin()">
+          <button type="button" id="adminPinSubmitBtn" class="w-full py-2.5 rounded-xl bg-royal-navy text-white font-serif font-bold text-xs tracking-wider shadow-md hover:bg-deep-blue btn-press transition disabled:opacity-50 disabled:cursor-not-allowed" onclick="verifyAdminPin()">
             Buka Panel Pengelola
           </button>
         </div>
       </div>
 
       <!-- Dashboard Step with Tabs -->
-      <div class="hidden flex-col gap-3 flex-1 overflow-hidden" id="adminDashboardStep">
+      <div class="hidden flex-col gap-2.5 sm:gap-3 flex-1 overflow-hidden min-h-0" id="adminDashboardStep">
         <!-- Tab Navigation Bar -->
-        <div class="flex items-center gap-1 overflow-x-auto pb-1 shrink-0 border-b border-sky-soft/60">
+        <div class="admin-tabs-nav flex items-center gap-1.5 overflow-x-auto pb-1.5 shrink-0 border-b border-sky-soft/60">
           <button type="button" id="tabBtn_warta" class="admin-tab-btn active" onclick="switchAdminTab('warta')">Warta & Kolase</button>
           <button type="button" id="tabBtn_jadwal" class="admin-tab-btn" onclick="switchAdminTab('jadwal')">Jadwal Ibadah</button>
           <button type="button" id="tabBtn_pengumuman" class="admin-tab-btn" onclick="switchAdminTab('pengumuman')">Pengumuman</button>
@@ -454,10 +468,14 @@
           <button type="button" id="tabBtn_renungan" class="admin-tab-btn" onclick="switchAdminTab('renungan')">Renungan</button>
           <button type="button" id="tabBtn_visibilitas" class="admin-tab-btn" onclick="switchAdminTab('visibilitas')">Status Tampilan</button>
           <button type="button" id="tabBtn_cloud" class="admin-tab-btn" onclick="switchAdminTab('cloud')">Database Cloud</button>
+          <button type="button" id="tabBtn_keamanan" class="admin-tab-btn flex items-center gap-1" onclick="switchAdminTab('keamanan')">
+            <span class="material-symbols-outlined text-[13px]">lock</span>
+            <span>Keamanan & Sandi</span>
+          </button>
         </div>
 
         <!-- Tab 1: Warta & Kolase -->
-        <div id="tabContent_warta" class="admin-tab-content flex-1 overflow-y-auto space-y-4 pr-1">
+        <div id="tabContent_warta" class="admin-tab-content flex-1 overflow-y-auto space-y-4 pr-1 min-h-0 pb-14">
           <!-- Text Edition Settings -->
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
             <span class="font-serif text-xs font-bold text-royal-navy">1. Teks Edisi & Tanggal Warta</span>
@@ -537,7 +555,7 @@
         </div>
 
         <!-- Tab 2: Jadwal Ibadah -->
-        <div id="tabContent_jadwal" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+        <div id="tabContent_jadwal" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
             <span class="font-serif text-xs font-bold text-royal-navy">Tambah Baris Jadwal Ibadah</span>
             <div class="grid grid-cols-2 gap-2 text-xs">
@@ -578,7 +596,7 @@
         </div>
 
         <!-- Tab: Pengumuman (Carousel / Slider Editor) -->
-        <div id="tabContent_pengumuman" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+        <div id="tabContent_pengumuman" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <!-- Form Tambah / Edit Pengumuman -->
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
             <span class="font-serif text-xs font-bold text-royal-navy" id="pengumumanFormTitle">1. Tambah Pengumuman Baru (Carousel)</span>
@@ -636,7 +654,7 @@
         </div>
 
         <!-- Tab 3: Persekutuan Pekanan -->
-        <div id="tabContent_persekutuan" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+        <div id="tabContent_persekutuan" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
             <span class="font-serif text-xs font-bold text-royal-navy">Tambah Persekutuan Pekanan</span>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -665,7 +683,7 @@
         </div>
 
         <!-- Tab 4: Dokumentasi -->
-        <div id="tabContent_dokumentasi" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+        <div id="tabContent_dokumentasi" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <div class="flex items-center justify-between">
             <span class="font-serif text-xs font-bold text-royal-navy">Kelola Album Dokumentasi</span>
             <button type="button" onclick="addDocFolder()" class="py-1 px-2.5 rounded-lg bg-royal-navy text-white text-[10px] font-serif font-bold">
@@ -690,7 +708,7 @@
         </div>
 
         <!-- Tab 5: Renungan (Folder dalam Folder) -->
-        <div id="tabContent_renungan" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+        <div id="tabContent_renungan" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <!-- Buat Subfolder Baru (Hierarchical) -->
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2">
             <span class="font-serif text-xs font-bold text-royal-navy">1. Buat Subfolder (Folder dalam Folder)</span>
@@ -759,7 +777,7 @@
         </div>
 
         <!-- Tab 6: Status Tampilan & Visibilitas (Aktifkan / Nonaktifkan Bagian) -->
-        <div id="tabContent_visibilitas" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+        <div id="tabContent_visibilitas" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2.5">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-antique-gold text-[20px]">toggle_on</span>
@@ -777,42 +795,36 @@
         </div>
 
         <!-- Tab 7: Database Cloud Settings -->
-        <div id="tabContent_cloud" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1">
+        <div id="tabContent_cloud" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
           <div class="p-3 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-2.5">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-emerald-600 text-[20px]">cloud_sync</span>
-              <span class="font-serif text-xs font-bold text-royal-navy">Status Database Cloud Publik</span>
+              <span class="font-serif text-xs font-bold text-royal-navy">Status Database Cloud Terintegrasi</span>
             </div>
-            <p class="text-[11px] text-royal-navy/70 leading-relaxed">
-              Agar data dapat diakses & diedit oleh semua jemaat saat dideploy online, hubungkan portal dengan Cloud Database gratis:
-            </p>
-
-            <div class="p-2.5 rounded-xl bg-white border border-sky-mid/40 flex flex-col gap-1.5 text-xs">
-              <span class="font-serif font-bold text-royal-navy text-[11px]">Rekomendasi Cloud Database Gratis:</span>
-              <div class="flex items-center justify-between">
-                <span>🔥 <strong>Firebase Realtime Database</strong> (100% Gratis)</span>
-                <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" class="text-antique-gold font-bold hover:underline flex items-center gap-0.5 text-[10px]">
-                  Buka Console <span class="material-symbols-outlined text-[12px]">open_in_new</span>
-                </a>
+            
+            <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col gap-1 text-xs">
+              <div class="flex items-center gap-1.5 text-emerald-800 font-bold">
+                <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                <span>Cloudflare KV Realtime Aktif (Multi-Device Sync)</span>
               </div>
-              <p class="text-[10px] text-royal-navy/60 leading-tight">
-                Langkah: Buat project di Firebase &gt; Menu Realtime Database &gt; Create Database (Test Mode) &gt; Salin URL database Anda.
+              <p class="text-[10px] text-emerald-700 leading-relaxed font-sans">
+                Portal ini otomatis tersambung ke <strong>Cloudflare KV Global Database</strong>. Setiap kali pengelola mengubah atau mengunggah data dari HP atau laptop mana pun, seluruh perangkat lain akan langsung terbarui secara otomatis.
               </p>
             </div>
 
-            <div class="flex flex-col gap-1 text-xs">
-              <label class="text-[10px] text-royal-navy/60 font-semibold">URL Endpoint Database Cloud (REST / Firebase):</label>
-              <input type="text" id="adminCloudUrlInput" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs font-mono" placeholder="https://wartajemaat-gpdigosyen-default-rtdb.asia-southeast1.firebasedatabase.app/data.json">
+            <div class="flex gap-2 pt-1">
+              <button type="button" onclick="syncCloudNow()" class="w-full py-2 px-3 rounded-xl bg-emerald-600 text-white text-xs font-serif font-bold flex items-center justify-center gap-1.5 shadow-sm hover:bg-emerald-700 btn-press transition">
+                <span class="material-symbols-outlined text-[16px]">sync</span>
+                <span>Sinkronkan Ulang Sekarang</span>
+              </button>
             </div>
 
-            <div class="flex gap-2">
-              <button type="button" onclick="saveCloudDatabaseConfig()" class="flex-1 py-2 px-3 rounded-xl bg-royal-navy text-white text-xs font-serif font-bold flex items-center justify-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[16px]">save</span>
-                <span>Simpan URL Cloud</span>
-              </button>
-              <button type="button" onclick="syncCloudNow()" class="py-2 px-3 rounded-xl bg-emerald-600 text-white text-xs font-serif font-bold flex items-center justify-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-[16px]">sync</span>
-                <span>Sinkronkan Sekarang</span>
+            <div class="pt-2 border-t border-sky-mid/30 flex flex-col gap-1.5 text-xs">
+              <label class="text-[10px] text-royal-navy/60 font-semibold">URL Custom Cloud Database Tambahan (Opsional):</label>
+              <input type="text" id="adminCloudUrlInput" class="w-full p-2 rounded-lg border border-sky-mid/50 text-xs font-mono" placeholder="Kosongkan jika menggunakan Cloudflare KV bawaan">
+              <button type="button" onclick="saveCloudDatabaseConfig()" class="self-start py-1.5 px-3 rounded-lg bg-royal-navy text-white text-[11px] font-serif font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">save</span>
+                <span>Simpan URL Custom</span>
               </button>
             </div>
           </div>
@@ -830,6 +842,71 @@
                 <input type="file" accept=".json" class="hidden" onchange="importDatabaseJSON(event)">
               </label>
             </div>
+          </div>
+        </div>
+
+        <!-- Tab 8: Keamanan & Sandi (Ubah Kata Sandi Pengelola) -->
+        <div id="tabContent_keamanan" class="admin-tab-content hidden flex-1 overflow-y-auto space-y-3 pr-1 min-h-0 pb-14">
+          <div class="p-3.5 rounded-2xl bg-sky-cloud/50 border border-sky-soft flex flex-col gap-3">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-vintage-gold text-[20px]">security</span>
+              <div>
+                <span class="font-serif text-xs font-bold text-royal-navy">Ubah Kata Sandi Pengelola</span>
+                <p class="text-[10px] text-royal-navy/60 font-sans">Perbarui kata sandi untuk mencegah akses tidak sah ke panel pengelola.</p>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5 text-xs font-sans">
+              <div>
+                <label class="text-[10px] text-royal-navy/70 font-semibold block mb-1">Kata Sandi Saat Ini:</label>
+                <div class="relative">
+                  <input type="password" id="adminCurrentPinInput" class="w-full p-2 pr-8 rounded-lg border border-sky-mid/50 text-xs font-mono" placeholder="Masukkan kata sandi lama">
+                  <button type="button" onclick="toggleInputVisibility('adminCurrentPinInput', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-royal-navy/40 hover:text-royal-navy">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-[10px] text-royal-navy/70 font-semibold block mb-1">Kata Sandi Baru (Min. 6 Karakter):</label>
+                <div class="relative">
+                  <input type="password" id="adminNewPinInput" class="w-full p-2 pr-8 rounded-lg border border-sky-mid/50 text-xs font-mono" placeholder="Masukkan kata sandi baru">
+                  <button type="button" onclick="toggleInputVisibility('adminNewPinInput', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-royal-navy/40 hover:text-royal-navy">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-[10px] text-royal-navy/70 font-semibold block mb-1">Konfirmasi Kata Sandi Baru:</label>
+                <div class="relative">
+                  <input type="password" id="adminConfirmPinInput" class="w-full p-2 pr-8 rounded-lg border border-sky-mid/50 text-xs font-mono" placeholder="Ulangi kata sandi baru">
+                  <button type="button" onclick="toggleInputVisibility('adminConfirmPinInput', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-royal-navy/40 hover:text-royal-navy">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                  </button>
+                </div>
+              </div>
+
+              <div id="changePinErrorMessage" class="hidden p-2 rounded-lg bg-red-50 border border-red-200 text-red-600 text-[11px]"></div>
+
+              <button type="button" onclick="handleChangeAdminPin()" class="mt-1 py-2 px-4 rounded-xl bg-royal-navy text-white text-xs font-serif font-bold flex items-center justify-center gap-1.5 shadow-sm hover:bg-deep-blue btn-press transition">
+                <span class="material-symbols-outlined text-[16px]">key</span>
+                <span>Perbarui Kata Sandi</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Informasi Keamanan Sesi -->
+          <div class="p-3 rounded-2xl bg-white border border-sky-soft flex flex-col gap-1.5">
+            <span class="font-serif text-[11px] font-bold text-royal-navy flex items-center gap-1">
+              <span class="material-symbols-outlined text-antique-gold text-[14px]">verified_user</span>
+              Protokol Keamanan Aktif:
+            </span>
+            <ul class="text-[10px] text-royal-navy/70 space-y-1 list-disc pl-4 font-sans">
+              <li>Kata sandi dilindungi enkripsi hash kriptografis SHA-256 satu arah.</li>
+              <li>Perlindungan anti brute-force: otomatis mengunci form jika 5 kali salah berturut-turut.</li>
+              <li>Sesi pengelola akan terkunci otomatis setelah 15 menit tanpa aktivitas.</li>
+            </ul>
           </div>
         </div>
 

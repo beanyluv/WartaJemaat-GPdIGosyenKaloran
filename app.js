@@ -13,7 +13,7 @@ let APP_DB = {
     headerTop: "GPdI Gosyen Kaloran",
     headerBottom: "Warta Jemaat",
     mapsUrl: "https://maps.app.goo.gl/CNYqT17tYnc58aD1A",
-    pin: "gosyen123"
+    pinHash: "5f0186f3047e1e50fb9d3746a90d3d33b73741c2bc0dd2431d063521bdb2ee0c"
   },
   visibility: {
     warta: true,
@@ -125,8 +125,8 @@ let APP_DB = {
     ]
   },
   cloudConfig: {
-    provider: "Firebase Realtime Database",
-    apiUrl: "https://wartajemaat-gpdigosyen-default-rtdb.asia-southeast1.firebasedatabase.app/data.json",
+    provider: "Cloudflare KV Global Edge",
+    apiUrl: "",
     syncEnabled: true
   }
 };
@@ -170,44 +170,63 @@ function checkWartaAutoExpiry() {
   }
 }
 
+function cleanDatabaseSecurity(db) {
+  if (db && db.church) {
+    if (db.church.pin) {
+      if (!db.church.pinHash) {
+        db.church.pinHash = DEFAULT_PIN_HASH;
+      }
+      delete db.church.pin;
+    }
+    if (!db.church.pinHash) {
+      db.church.pinHash = DEFAULT_PIN_HASH;
+    }
+  }
+  return db;
+}
+
 async function loadDatabase() {
-  // 1. Try Cloud Database First if configured (Direct Cloud REST / Firebase)
+  // 1. Primary: Load from Central API (/api/data) -> Cloudflare KV on Pages, or server.py locally
+  try {
+    const res = await fetch(`/api/data?t=${Date.now()}`, {
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data === "object" && data.church) {
+        APP_DB = cleanDatabaseSecurity({ ...APP_DB, ...data });
+        saveToLocalMirror();
+        console.log("Synchronized from Cloudflare KV / Central API ✓");
+        return;
+      }
+    }
+  } catch (err) {
+    console.log("Central API standby, checking fallbacks...", err);
+  }
+
+  // 2. Secondary: If external custom Cloud DB URL is configured (optional Firebase)
   if (APP_DB.cloudConfig && APP_DB.cloudConfig.apiUrl) {
     try {
-      const cloudRes = await fetch(APP_DB.cloudConfig.apiUrl);
+      const cloudRes = await fetch(`${APP_DB.cloudConfig.apiUrl}?t=${Date.now()}`);
       if (cloudRes.ok) {
         const cloudData = await cloudRes.json();
         if (cloudData && typeof cloudData === "object" && cloudData.church) {
-          APP_DB = { ...APP_DB, ...cloudData };
+          APP_DB = cleanDatabaseSecurity({ ...APP_DB, ...cloudData });
           saveToLocalMirror();
-          console.log("Synchronized from Cloud Database ✓");
+          console.log("Synchronized from Custom Cloud DB ✓");
           return;
         }
       }
     } catch (e) {
-      console.log("Cloud DB fetch standby (will try server/local)", e);
+      console.log("Custom Cloud DB fetch standby:", e);
     }
-  }
-
-  // 2. Try Server REST API (Local or Tunnel)
-  try {
-    const res = await fetch("/api/data");
-    if (res.ok) {
-      const data = await res.json();
-      APP_DB = { ...APP_DB, ...data };
-      console.log("Loaded data from Server API");
-      saveToLocalMirror();
-      return;
-    }
-  } catch (err) {
-    console.log("Server API standby", err);
   }
 
   // 3. Fallback: Browser LocalStorage Mirror
   const local = localStorage.getItem("gpdi_cloud_db");
   if (local) {
     try {
-      APP_DB = JSON.parse(local);
+      APP_DB = cleanDatabaseSecurity(JSON.parse(local));
     } catch (e) {
       console.error(e);
     }
@@ -215,9 +234,26 @@ async function loadDatabase() {
 }
 
 async function saveDatabase() {
+  cleanDatabaseSecurity(APP_DB);
   saveToLocalMirror();
 
-  // 1. Save to Cloud Database (Firebase Realtime Database / Supabase REST)
+  // 1. Save to Central Cloud API (/api/data) -> Cloudflare KV on Pages or server.py locally
+  let cloudSuccess = false;
+  try {
+    const res = await fetch("/api/data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(APP_DB)
+    });
+    if (res.ok) {
+      cloudSuccess = true;
+      console.log("Saved directly to Cloudflare KV / Central Database ✓");
+    }
+  } catch (err) {
+    console.log("Central API save standby:", err);
+  }
+
+  // 2. Save to Custom Cloud Database if configured (optional)
   if (APP_DB.cloudConfig && APP_DB.cloudConfig.apiUrl) {
     try {
       await fetch(APP_DB.cloudConfig.apiUrl, {
@@ -225,25 +261,57 @@ async function saveDatabase() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(APP_DB)
       });
-      console.log("Saved directly to Cloud Database ✓");
+      console.log("Saved to Custom Cloud DB ✓");
     } catch (err) {
-      console.log("Cloud DB PUT standby:", err);
+      console.log("Custom Cloud DB save standby:", err);
     }
   }
 
-  // 2. Save to Server REST API
-  try {
-    await fetch("/api/data", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(APP_DB)
-    });
-  } catch (err) {
-    console.log("Server API save standby");
-  }
-
   renderAll();
+  return cloudSuccess;
 }
+
+// Real-time synchronization across devices
+let isSyncingSilently = false;
+async function syncFromCloudSilently() {
+  if (isSyncingSilently) return;
+  if (isAdminAuthenticated) return; // Don't interrupt if admin is currently editing
+
+  try {
+    isSyncingSilently = true;
+    const res = await fetch(`/api/data?t=${Date.now()}`, {
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data === "object" && data.church) {
+        const incomingStr = JSON.stringify(data);
+        const currentStr = JSON.stringify(APP_DB);
+        if (incomingStr !== currentStr) {
+          console.log("Cloud update detected from another device! Updating UI...");
+          APP_DB = cleanDatabaseSecurity({ ...APP_DB, ...data });
+          saveToLocalMirror();
+          renderAll();
+        }
+      }
+    }
+  } catch (e) {
+    // silent fallback
+  } finally {
+    isSyncingSilently = false;
+  }
+}
+
+// Auto-sync when user returns to this tab / browser
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    syncFromCloudSilently();
+  }
+});
+window.addEventListener("focus", syncFromCloudSilently);
+
+// Periodic background sync every 30 seconds
+setInterval(syncFromCloudSilently, 30000);
 
 function saveToLocalMirror() {
   try {
@@ -935,42 +1003,404 @@ function toggleAccordion(id) {
   }
 }
 
-// Admin Modal
+// ==========================================
+// PENGELOLA SECURITY & ACCESS CONTROL
+// ==========================================
+
+const DEFAULT_PIN_HASH = "5f0186f3047e1e50fb9d3746a90d3d33b73741c2bc0dd2431d063521bdb2ee0c"; // Initial standard hash
+const MAX_PIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 60 * 1000; // 60 Detik Lockout
+const ADMIN_SESSION_TIMEOUT_MS = 15 * 60 * 1000; // 15 Menit Inactivity Timeout
+
+let isAdminAuthenticated = false;
+let adminInactivityTimer = null;
+let pinLockoutInterval = null;
+
+// Pure JS SHA-256 Fallback
+function jsSha256(ascii) {
+  function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+  const mathPow = Math.pow, maxWord = mathPow(2, 32);
+  let lengthProperty = 'length', i, j, result = '';
+  const words = [];
+  const asciiBitLength = ascii[lengthProperty] * 8;
+  let hash = jsSha256.h = jsSha256.h || [], k = jsSha256.k = jsSha256.k || [];
+  let primeCounter = k[lengthProperty];
+  const isComposite = {};
+  for (let candidate = 2; primeCounter < 64; candidate++) {
+    if (!isComposite[candidate]) {
+      for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+      hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+      k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+    }
+  }
+  ascii += '\x80';
+  while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+  for (i = 0; i < ascii[lengthProperty]; i++) {
+    j = ascii.charCodeAt(i);
+    words[i >> 2] |= j << ((3 - i) % 4) * 8;
+  }
+  words[words[lengthProperty]] = (asciiBitLength / maxWord) | 0;
+  words[words[lengthProperty]] = asciiBitLength;
+  let H = hash.slice(0, 8);
+  for (j = 0; j < words[lengthProperty];) {
+    const wSub = words.slice(j, j += 16);
+    const oldHash = H.slice(0);
+    for (i = 0; i < 64; i++) {
+      const w15 = wSub[i - 15], w2 = wSub[i - 2];
+      const a = H[0], e = H[4];
+      const s1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+      const ch = (e & H[5]) ^ ((~e) & H[6]);
+      const temp1 = H[7] + s1 + ch + k[i] + (wSub[i] = (i < 16) ? wSub[i] : (
+        wSub[i - 16] +
+        (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) +
+        wSub[i - 7] +
+        (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+      ) | 0);
+      const s0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+      const maj = (a & H[1]) ^ (a & H[2]) ^ (H[1] & H[2]);
+      const temp2 = s0 + maj;
+      H = [(temp1 + temp2) | 0, a, H[1], H[2], (H[3] + temp1) | 0, e, H[5], H[6]];
+    }
+    for (i = 0; i < 8; i++) H[i] = (H[i] + oldHash[i]) | 0;
+  }
+  for (i = 0; i < 8; i++) {
+    for (let b = 3; b >= 0; b--) {
+      const byteVal = (H[i] >> (8 * b)) & 255;
+      result += (byteVal < 16 ? '0' : '') + byteVal.toString(16);
+    }
+  }
+  return result;
+}
+
+// Compute SHA-256 Hex
+async function sha256Hex(text) {
+  if (window.crypto && crypto.subtle) {
+    try {
+      const utf8 = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", utf8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch (e) {
+      console.warn("crypto.subtle failed, fallback to jsSha256", e);
+    }
+  }
+  return jsSha256(text);
+}
+
+// Check PIN validity against hash
+async function isPinValid(inputPin) {
+  if (!inputPin) return false;
+  const inputHash = await sha256Hex(inputPin);
+
+  // 1. Check against pinHash in database
+  if (APP_DB.church && APP_DB.church.pinHash) {
+    return inputHash === APP_DB.church.pinHash;
+  }
+
+  // 2. Legacy fallback: check against plain text pin and migrate
+  if (APP_DB.church && APP_DB.church.pin) {
+    if (inputPin === APP_DB.church.pin) {
+      APP_DB.church.pinHash = inputHash;
+      delete APP_DB.church.pin;
+      saveDatabase();
+      return true;
+    }
+    return false;
+  }
+
+  // 3. Fallback to default hash
+  return inputHash === DEFAULT_PIN_HASH;
+}
+
+// Lockout Helpers (SessionStorage Based)
+function getLockoutRemainingMs() {
+  const lockoutUntil = parseInt(sessionStorage.getItem("gpdi_admin_lockout_until") || "0", 10);
+  const now = Date.now();
+  return lockoutUntil > now ? (lockoutUntil - now) : 0;
+}
+
+function checkLockoutState() {
+  const remainingMs = getLockoutRemainingMs();
+  const notice = document.getElementById("pinLockoutNotice");
+  const text = document.getElementById("pinLockoutText");
+  const input = document.getElementById("adminPinInput");
+  const submitBtn = document.getElementById("adminPinSubmitBtn");
+  const errMsg = document.getElementById("pinErrorMessage");
+
+  if (remainingMs > 0) {
+    const seconds = Math.ceil(remainingMs / 1000);
+    if (notice) notice.classList.remove("hidden");
+    if (text) text.textContent = `Akses diblokir sementara karena terlalu banyak percobaan salah. Coba lagi dalam ${seconds} detik.`;
+    if (input) {
+      input.disabled = true;
+      input.classList.add("opacity-50", "cursor-not-allowed");
+    }
+    if (submitBtn) submitBtn.disabled = true;
+    if (errMsg) errMsg.classList.add("hidden");
+
+    if (!pinLockoutInterval) {
+      pinLockoutInterval = setInterval(() => {
+        const rem = getLockoutRemainingMs();
+        if (rem <= 0) {
+          clearInterval(pinLockoutInterval);
+          pinLockoutInterval = null;
+          sessionStorage.removeItem("gpdi_admin_lockout_until");
+          sessionStorage.setItem("gpdi_admin_failed_attempts", "0");
+          checkLockoutState();
+        } else {
+          if (text) text.textContent = `Akses diblokir sementara karena terlalu banyak percobaan salah. Coba lagi dalam ${Math.ceil(rem / 1000)} detik.`;
+        }
+      }, 1000);
+    }
+    return true;
+  } else {
+    if (notice) notice.classList.add("hidden");
+    if (input) {
+      input.disabled = false;
+      input.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+    if (submitBtn) submitBtn.disabled = false;
+    return false;
+  }
+}
+
+// Shake animation helper
+function shakeElement(el) {
+  if (!el) return;
+  el.classList.add("shake-anim");
+  setTimeout(() => el.classList.remove("shake-anim"), 500);
+}
+
+// Show/Hide Password Eye toggles
+function togglePinVisibility() {
+  const input = document.getElementById("adminPinInput");
+  const icon = document.getElementById("pinVisibilityIcon");
+  if (!input || !icon) return;
+  if (input.type === "password") {
+    input.type = "text";
+    icon.textContent = "visibility_off";
+  } else {
+    input.type = "password";
+    icon.textContent = "visibility";
+  }
+}
+
+function toggleInputVisibility(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  const icon = btnEl ? btnEl.querySelector(".material-symbols-outlined") : null;
+  if (!input) return;
+  if (input.type === "password") {
+    input.type = "text";
+    if (icon) icon.textContent = "visibility_off";
+  } else {
+    input.type = "password";
+    if (icon) icon.textContent = "visibility";
+  }
+}
+
+// Admin Inactivity Auto-Lock
+function startAdminInactivityTimer() {
+  resetAdminInactivityTimer();
+  window.addEventListener("mousemove", resetAdminInactivityTimer, { passive: true });
+  window.addEventListener("keydown", resetAdminInactivityTimer, { passive: true });
+  window.addEventListener("click", resetAdminInactivityTimer, { passive: true });
+}
+
+function stopAdminInactivityTimer() {
+  if (adminInactivityTimer) clearTimeout(adminInactivityTimer);
+  window.removeEventListener("mousemove", resetAdminInactivityTimer);
+  window.removeEventListener("keydown", resetAdminInactivityTimer);
+  window.removeEventListener("click", resetAdminInactivityTimer);
+}
+
+function resetAdminInactivityTimer() {
+  if (!isAdminAuthenticated) return;
+  if (adminInactivityTimer) clearTimeout(adminInactivityTimer);
+  adminInactivityTimer = setTimeout(() => {
+    if (isAdminAuthenticated) {
+      logoutAdmin();
+      showToast("Sesi pengelola terkunci otomatis karena tidak aktif 🔒");
+    }
+  }, ADMIN_SESSION_TIMEOUT_MS);
+}
+
+// Admin Modal Lifecycle
 function openAdminModal() {
   const modal = document.getElementById("adminModal");
   modal.classList.remove("hidden");
   modal.classList.add("flex");
-  document.getElementById("adminPinInput").value = "";
-  document.getElementById("pinErrorMessage").classList.add("hidden");
-  document.getElementById("pinStep").classList.remove("hidden");
-  document.getElementById("adminDashboardStep").classList.add("hidden");
+  document.body.classList.add("overflow-hidden");
 
-  setTimeout(() => {
+  if (isAdminAuthenticated) {
+    document.getElementById("pinStep").classList.add("hidden");
+    document.getElementById("adminDashboardStep").classList.remove("hidden");
+    const logoutBtn = document.getElementById("adminLogoutBtn");
+    if (logoutBtn) {
+      logoutBtn.classList.remove("hidden");
+      logoutBtn.classList.add("flex");
+    }
+    populateAdminDashboard();
+  } else {
+    document.getElementById("pinStep").classList.remove("hidden");
+    document.getElementById("adminDashboardStep").classList.add("hidden");
+    const logoutBtn = document.getElementById("adminLogoutBtn");
+    if (logoutBtn) {
+      logoutBtn.classList.add("hidden");
+      logoutBtn.classList.remove("flex");
+    }
     const input = document.getElementById("adminPinInput");
-    if (input) input.focus();
-  }, 100);
+    if (input) input.value = "";
+    document.getElementById("pinErrorMessage").classList.add("hidden");
+    checkLockoutState();
+
+    setTimeout(() => {
+      if (input && !input.disabled) input.focus();
+    }, 100);
+  }
 }
 
 function closeAdminModal() {
   const modal = document.getElementById("adminModal");
   modal.classList.add("hidden");
   modal.classList.remove("flex");
+  document.body.classList.remove("overflow-hidden");
 }
 
-function verifyAdminPin() {
-  const inputPin = document.getElementById("adminPinInput").value.trim();
-  const validPin = APP_DB.church.pin || "gosyen123";
+function logoutAdmin() {
+  isAdminAuthenticated = false;
+  stopAdminInactivityTimer();
 
-  if (inputPin === validPin || inputPin === "gosyen123") {
+  document.getElementById("pinStep").classList.remove("hidden");
+  document.getElementById("adminDashboardStep").classList.add("hidden");
+
+  const logoutBtn = document.getElementById("adminLogoutBtn");
+  if (logoutBtn) {
+    logoutBtn.classList.add("hidden");
+    logoutBtn.classList.remove("flex");
+  }
+
+  const pinInput = document.getElementById("adminPinInput");
+  if (pinInput) pinInput.value = "";
+  document.getElementById("pinErrorMessage").classList.add("hidden");
+
+  // Reset change password inputs
+  const cur = document.getElementById("adminCurrentPinInput");
+  const nP = document.getElementById("adminNewPinInput");
+  const cP = document.getElementById("adminConfirmPinInput");
+  if (cur) cur.value = "";
+  if (nP) nP.value = "";
+  if (cP) cP.value = "";
+  const changeErr = document.getElementById("changePinErrorMessage");
+  if (changeErr) changeErr.classList.add("hidden");
+
+  switchAdminTab("warta");
+  showToast("Panel pengelola telah dikunci 🔒");
+}
+
+async function verifyAdminPin() {
+  if (checkLockoutState()) return;
+
+  const inputEl = document.getElementById("adminPinInput");
+  const inputPin = inputEl.value.trim();
+  const err = document.getElementById("pinErrorMessage");
+
+  if (!inputPin) {
+    err.classList.remove("hidden");
+    err.textContent = "Silakan masukkan kata sandi pengelola.";
+    shakeElement(inputEl);
+    inputEl.focus();
+    return;
+  }
+
+  const valid = await isPinValid(inputPin);
+
+  if (valid) {
+    // Reset failed counter
+    sessionStorage.removeItem("gpdi_admin_failed_attempts");
+    sessionStorage.removeItem("gpdi_admin_lockout_until");
+    err.classList.add("hidden");
+    inputEl.value = "";
+
+    isAdminAuthenticated = true;
+    startAdminInactivityTimer();
+
     document.getElementById("pinStep").classList.add("hidden");
     document.getElementById("adminDashboardStep").classList.remove("hidden");
+    const logoutBtn = document.getElementById("adminLogoutBtn");
+    if (logoutBtn) {
+      logoutBtn.classList.remove("hidden");
+      logoutBtn.classList.add("flex");
+    }
+
     populateAdminDashboard();
     showToast("Akses Pengelola Terbuka ✓");
   } else {
-    const err = document.getElementById("pinErrorMessage");
-    err.classList.remove("hidden");
-    err.textContent = "Kata sandi salah! Gunakan: gosyen123";
+    let failed = parseInt(sessionStorage.getItem("gpdi_admin_failed_attempts") || "0", 10) + 1;
+    sessionStorage.setItem("gpdi_admin_failed_attempts", failed.toString());
+
+    shakeElement(inputEl);
+    inputEl.value = "";
+    inputEl.focus();
+
+    if (failed >= MAX_PIN_ATTEMPTS) {
+      sessionStorage.setItem("gpdi_admin_lockout_until", (Date.now() + LOCKOUT_DURATION_MS).toString());
+      checkLockoutState();
+    } else {
+      err.classList.remove("hidden");
+      const remainingAttempts = MAX_PIN_ATTEMPTS - failed;
+      err.textContent = `Kata sandi salah! Sisa percobaan: ${remainingAttempts} kali.`;
+    }
   }
+}
+
+// Handle Change Admin PIN
+async function handleChangeAdminPin() {
+  const curInput = document.getElementById("adminCurrentPinInput").value.trim();
+  const newInput = document.getElementById("adminNewPinInput").value.trim();
+  const confInput = document.getElementById("adminConfirmPinInput").value.trim();
+  const errBox = document.getElementById("changePinErrorMessage");
+
+  errBox.classList.add("hidden");
+  errBox.textContent = "";
+
+  if (!curInput) {
+    errBox.classList.remove("hidden");
+    errBox.textContent = "Masukkan kata sandi saat ini terlebih dahulu.";
+    return;
+  }
+
+  const isCurValid = await isPinValid(curInput);
+  if (!isCurValid) {
+    errBox.classList.remove("hidden");
+    errBox.textContent = "Kata sandi saat ini salah!";
+    return;
+  }
+
+  if (newInput.length < 6) {
+    errBox.classList.remove("hidden");
+    errBox.textContent = "Kata sandi baru minimal harus 6 karakter demi keamanan!";
+    return;
+  }
+
+  if (newInput !== confInput) {
+    errBox.classList.remove("hidden");
+    errBox.textContent = "Konfirmasi kata sandi baru tidak cocok!";
+    return;
+  }
+
+  // Generate new SHA-256 hash and update
+  const newHash = await sha256Hex(newInput);
+  if (!APP_DB.church) APP_DB.church = {};
+  APP_DB.church.pinHash = newHash;
+  delete APP_DB.church.pin;
+
+  await saveDatabase();
+
+  document.getElementById("adminCurrentPinInput").value = "";
+  document.getElementById("adminNewPinInput").value = "";
+  document.getElementById("adminConfirmPinInput").value = "";
+
+  showToast("Kata sandi pengelola berhasil diubah! 🔒");
 }
 
 // Admin Tab Switching
@@ -981,8 +1411,18 @@ function switchAdminTab(tabName) {
   const targetBtn = document.getElementById(`tabBtn_${tabName}`);
   const targetContent = document.getElementById(`tabContent_${tabName}`);
 
-  if (targetBtn) targetBtn.classList.add("active");
-  if (targetContent) targetContent.classList.remove("hidden");
+  if (targetBtn) {
+    targetBtn.classList.add("active");
+    try {
+      targetBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    } catch (e) {
+      targetBtn.scrollIntoView(false);
+    }
+  }
+  if (targetContent) {
+    targetContent.classList.remove("hidden");
+    targetContent.scrollTop = 0;
+  }
 }
 
 // Populate Admin Dashboard Fields
@@ -1856,9 +2296,10 @@ async function saveCloudDatabaseConfig() {
 }
 
 async function syncCloudNow() {
-  showToast("Menyinkronkan ke Cloud Database...");
-  await saveDatabase();
-  showToast("Sinkronisasi Cloud Berhasil! ✓");
+  showToast("Menyinkronkan data dari Cloud...");
+  await loadDatabase();
+  renderAll();
+  showToast("Sinkronisasi Cloud Berhasil! ✓ Data Terkini Tampil");
 }
 
 function exportDatabaseJSON() {

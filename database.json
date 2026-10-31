@@ -5,7 +5,7 @@
     "headerTop": "GPdI Gosyen Kaloran",
     "headerBottom": "Warta Jemaat",
     "mapsUrl": "https://maps.app.goo.gl/CNYqT17tYnc58aD1A",
-    "pin": "gosyen123"
+    "pinHash": "5f0186f3047e1e50fb9d3746a90d3d33b73741c2bc0dd2431d063521bdb2ee0c"
   },
   "visibility": {
     "warta": true,
@@ -185,8 +185,8 @@
     ]
   },
   "cloudConfig": {
-    "provider": "Firebase Realtime / Cloud REST",
-    "apiUrl": "https://gpdi-gosyen-warta-default-rtdb.asia-southeast1.firebasedatabase.app/data.json",
+    "provider": "Cloudflare KV Global Edge",
+    "apiUrl": "",
     "syncEnabled": true
   }
 }

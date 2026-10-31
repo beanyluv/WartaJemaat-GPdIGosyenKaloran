@@ -10,6 +10,7 @@ import os
 import urllib.parse
 import mimetypes
 import base64
+import hashlib
 from datetime import datetime
 
 PORT = 8080
@@ -25,7 +26,7 @@ DEFAULT_DATABASE = {
         "headerTop": "GPdI Gosyen Kaloran",
         "headerBottom": "Warta Jemaat",
         "mapsUrl": "https://maps.app.goo.gl/CNYqT17tYnc58aD1A",
-        "pin": "gosyen123"
+        "pinHash": "5f0186f3047e1e50fb9d3746a90d3d33b73741c2bc0dd2431d063521bdb2ee0c"
     },
     "visibility": {
         "warta": True,
@@ -147,11 +148,25 @@ DEFAULT_DATABASE = {
         ]
     },
     "cloudConfig": {
-        "provider": "Firebase Realtime / Cloud REST",
-        "apiUrl": "https://gpdi-gosyen-warta-default-rtdb.asia-southeast1.firebasedatabase.app/data.json",
+        "provider": "Cloudflare KV Global Edge",
+        "apiUrl": "",
         "syncEnabled": True
     }
 }
+
+def sanitize_security_data(data):
+    if not isinstance(data, dict):
+        return data
+    church = data.get("church")
+    if isinstance(church, dict):
+        if "pin" in church:
+            # Migrate plain text pin to sha256 pinHash
+            raw_pin = str(church["pin"])
+            church["pinHash"] = hashlib.sha256(raw_pin.encode("utf-8")).hexdigest()
+            del church["pin"]
+        if "pinHash" not in church:
+            church["pinHash"] = DEFAULT_DATABASE["church"]["pinHash"]
+    return data
 
 def load_database():
     if not os.path.exists(DB_FILE):
@@ -159,14 +174,16 @@ def load_database():
         return DEFAULT_DATABASE
     try:
         with open(DB_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            return sanitize_security_data(data)
     except Exception as e:
         print("Error loading database:", e)
         return DEFAULT_DATABASE
 
 def save_database(data):
+    sanitized = sanitize_security_data(data)
     with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(sanitized, f, ensure_ascii=False, indent=2)
 
 class ChurchRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
